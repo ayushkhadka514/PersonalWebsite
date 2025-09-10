@@ -68,7 +68,7 @@ function AboutMeContent() {
   return (
     <div className="space-y-8">
       <div className="grid md:grid-cols-2 gap-6 items-center">
-        <Image src="https://placehold.co/800x500" alt="Portrait / banner" />
+        <Image src="my-site\public\large.jpg" alt="Portrait / banner" />
         <div className="space-y-3">
           <h2 className="text-3xl font-bold">Hi, I’m Ayush Khadka</h2>
           <p className="text-gray-600">I’m a student and builder interested in data science, machine learning, and turning real‑world problems into simple, human‑centered tools. This site collects my projects, notes, and experiments.</p>
