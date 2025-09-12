@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 // ------------------------------------------------------------
 // Personal Website — Two-level navigation
 // Top nav: About Me, Projects (dropdown), Resume
-// Project: CSCI 5612: NFL Game Winner Prediction
+// Project: CSCI 5612: March Madness
 // Selecting the project reveals project-specific tabs: Introduction,
 // Conclusions, DataPrep_EDA, Clustering, PCA, NaiveBayes, DecTrees,
 // SVMs, Regression, NN.
@@ -79,7 +79,7 @@ function AboutMeContent() {
       </div>
       <SectionCard title="About Me">
         <p>
-          Replace this with a short bio, your interests, and what you’re working on right now. Add a few photos or links. Keep it friendly and non‑technical on the homepage.
+          Work in progress....
         </p>
       </SectionCard>
     </div>
@@ -90,13 +90,13 @@ function ProjectsLanding({ openProject }) {
   return (
     <div className="space-y-8">
       <SectionCard title="Projects">
-        <p>Choose a project to view details. You can add more cards later.</p>
+        <p>Choose a project to view details.</p>
       </SectionCard>
       <div className="grid md:grid-cols-3 gap-6">
         <button onClick={() => openProject("csci5612")}
           className="bg-white rounded-2xl shadow p-6 text-left hover:shadow-md transition">
-          <h3 className="text-lg font-semibold">CSCI 5612: NFL Game Winner Prediction</h3>
-          <p className="text-gray-600 mt-2">A course project exploring how to predict the winner of NFL games.</p>
+          <h3 className="text-lg font-semibold">CSCI 5612: March Madness Bracket Buster</h3>
+          <p className="text-gray-600 mt-2">A course project exploring how to predict the winner of the NCAA March Madness tournament.</p>
         </button>
       </div>
     </div>
@@ -116,7 +116,7 @@ function ResumeContent() {
 }
 
 // -------------------------
-// PROJECT VIEWS — NFL Game Winner Prediction (NON‑TECHNICAL INTRO)
+// PROJECT VIEWS — March Madness (NON‑TECHNICAL INTRO)
 // -------------------------
 function IntroContent() {
   return (
@@ -320,10 +320,10 @@ export default function App() {
       <header className="sticky top-0 z-10 backdrop-blur bg-white/80 border-b">
         <div className="w-full px-6 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => goHome("about")}>
-            <div className="w-10 h-10 rounded-2xl bg-black text-white grid place-items-center font-bold">DS</div>
+            <div className="w-10 h-10 rounded-2xl bg-black text-white grid place-items-center font-bold">AK</div>
             <div>
-              <h1 className="text-xl font-semibold">Personal Data Science Project</h1>
-              <p className="text-sm text-gray-500">A living portfolio of your course modules</p>
+              <h1 className="text-xl font-semibold">Ayush Khadka</h1>
+              <p className="text-sm text-gray-500">CS and Math@ CU Boulder</p>
             </div>
           </div>
 
@@ -358,7 +358,7 @@ export default function App() {
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100"
                     onClick={() => openProject("csci5612")}
                   >
-                    CSCI 5612: NFL Game Winner Prediction
+                    CSCI 5612: March Madness Predictor
                   </button>
                 </div>
               )}
