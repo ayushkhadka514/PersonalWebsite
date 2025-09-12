@@ -447,8 +447,13 @@ function DataPrepEDA() {
 
       <SectionCard title="Exploration & Summaries">
         <p>
-          Provide quick visuals and descriptive summaries: distributions (e.g., points, margins), missingness, outliers, home/away or seed splits, and early
-          observations.
+          The data highlights a consistent story: defensive strength is a key differentiator in March success. The Mean ADJDE by Result shows that teams advancing deeper in the tournament have stronger defenses on average, with champions consistently posting the lowest (best) defensive efficiency. Paired with the ADJOE vs. ADJDE scatter, the importance of balance becomes clear — elite teams often cluster in the bottom-right, combining high offensive efficiency with low defensive efficiency. This balance is reinforced by the correlation heatmap, where BARTHAG is strongly associated with both ADJOE and ADJDE, confirming it as a composite measure of team strength.
+        </p>
+        <p>
+          Seed-based analysis provides further insight. The Distribution of Results by Seed shows the expected pattern of top seeds making deeper runs, but the BARTHAG comparison of high seeds that exited early vs. those advancing underscores that even among top seeds, weaker underlying efficiency (lower BARTHAG) often predicts vulnerability to upsets. Similarly, the EFG% vs. BARTHAG scatter demonstrates that shooting efficiency is strongly linked with overall team quality. Offensive and defensive boxplots by seed further show that higher seeds consistently have more efficient scoring and tougher defenses, while lower seeds are more variable.
+        </p>
+        <p>
+          Tournament-wide dynamics also emerge. The Survival curves for double-digit seeds quantify the rarity of Cinderella runs: while most exit early, certain seeds (like 11s and 12s) have a non-negligible chance to reach the Sweet 16 or beyond. The Turnover Rate by Result visualization highlights another subtle factor — deeper teams tend to be more disciplined with the ball. Finally, the Underdog round progression counts give a clear picture of just how steep the uphill climb is for double-digit seeds, with Sweet 16 and Elite Eight runs being historically rare but impactful when they occur.
         </p>
       </SectionCard>
 
