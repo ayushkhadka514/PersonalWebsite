@@ -390,16 +390,16 @@ function PlaceholderMethod({ name }) {
 function DataPrepEDA() {
   // 10-visualization gallery (all files in /public)
   const GALLERY_ITEMS = [
-    { src: `${import.meta.env.BASE_URL}v1.png`, alt: "Seed distribution histogram", caption: "Seed distribution, 2008–2025" },
-    { src: `${import.meta.env.BASE_URL}v2.png`, alt: "Win% by seed boxplot", caption: "Win rate by seed" },
-    { src: `${import.meta.env.BASE_URL}v3.png`, alt: "AdjO vs AdjD scatter", caption: "AdjO vs AdjD, colored by round" },
-    { src: `${import.meta.env.BASE_URL}v4.png`, alt: "Pace histogram", caption: "Pace distribution across teams" },
-    { src: `${import.meta.env.BASE_URL}v5.png`, alt: "3PT% bar chart", caption: "Three-point shooting by region" },
-    { src: `${import.meta.env.BASE_URL}v6.png`, alt: "Conference strength heatmap", caption: "Conference strength heatmap" },
-    { src: `${import.meta.env.BASE_URL}v7.png`, alt: "Upset rate line plot", caption: "Upset rates by season" },
-    { src: `${import.meta.env.BASE_URL}v8.png`, alt: "Bracket path difficulty", caption: "Average path difficulty by seed" },
-    { src: `${import.meta.env.BASE_URL}v9.png`, alt: "Calibration curve", caption: "Win probability calibration" },
-    { src: `${import.meta.env.BASE_URL}v10.png`, alt: "Feature importance", caption: "Feature importance snapshot" },
+    { src: `${import.meta.env.BASE_URL}ADJDE.png`, alt: "Seed distribution histogram", caption: "Result in tournament vs mean ADJDE Bar Graph" },
+    { src: `${import.meta.env.BASE_URL}adjoexadjde.png`, alt: "Win% by seed boxplot", caption: "ADJOE vs ADJDE, colored by round" },
+    { src: `${import.meta.env.BASE_URL}correlation.png`, alt: "AdjO vs AdjD scatter", caption: "Correlation Heatmap between features" },
+    { src: `${import.meta.env.BASE_URL}earlyvslate.png`, alt: "Pace histogram", caption: "Boxplot of BARTHAG for High Seeds" },
+    { src: `${import.meta.env.BASE_URL}efgoxbarthag.png`, alt: "3PT% bar chart", caption: "EFG_O x BARTHAG" },
+    { src: `${import.meta.env.BASE_URL}seedxoff.png`, alt: "Conference strength heatmap", caption: "Offensive Rating vs Tournament Seed" },
+    { src: `${import.meta.env.BASE_URL}seedxresult.png`, alt: "Upset rate line plot", caption: "Tournament Seed vs Seed" },
+    { src: `${import.meta.env.BASE_URL}torxresult.png`, alt: "Bracket path difficulty", caption: "Turnover rate vs Tournament Result" },
+    { src: `${import.meta.env.BASE_URL}underdog.png`, alt: "Calibration curve", caption: "Lower seed tournament result distribution" },
+    { src: `${import.meta.env.BASE_URL}Survival.png`, alt: "Feature importance", caption: "Proportion of lower seeds advancing" },
   ];
 
   return (
