@@ -242,9 +242,11 @@ function DataPrepEDA() {
     <div className="space-y-8">
       <SectionCard title="Data Sources & Access">
         <ul className="list-disc pl-6 space-y-1">
-          <li>Describe how, where, and why you gathered your NFL data (schedules, scores, team stats, injuries, weather, etc.).</li>
-          <li>Include links to all <strong>raw data</strong> files and any APIs used (with base URL and a core GET example).</li>
-          <li>Add short notes about licensing, update frequency, and any known caveats.</li>
+          <p>
+            For my data so far, I have two main sources, the <a> href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" CBBData API</a> and I also webscraped from <a> href="https://barttorvik.com/trank.php?year=2025#" barttorvik</a>. I ensured to follow all terms and regulations to webscrape from barttorvik. I used Python's BeautfulSoup and Requests library to webscrape off of the website and got lots of raw data and for the most part, it was very clean. From barttorvik, I was bale to get statistics from every team that made the NCAA March Madness Tournament since 2008 all the way to 2025 aside from 2020 because that was the COVID season so there is very limited data and no tournament that year. The features that I selected from barttorvik were Team, Conference, Games Played, Games Won and Lost, Adjusted Offensive Rating, Adjusted Defensive Rating, Efficiency Field Goal Percentage, and Defensive Field Goal Percentage. The website was super clean with data, there weren't any NaN values to impute, the main things I had to clean were ensuring the College names were correct and easy to read in teh dataframe and I manually imputed the result column for each team since it was not correctly scraping how far a team went in the tournament. I then also added my own column called win%, eliminating the need for Games won, Games Played, and Games Lost.
+
+            Bartorrvik was a great website to scrape from for past team data, but it lacked more recent data, and it also lacked indivudal player data and other team statistics such as 3 point percentage and other shooting analytics. I was able to obtain these from the CBBData API. The API also works with barttorvik but the API has a lot more recent data whereas the website is more focused on team analytics from the past. Combining the two, I think I will have a sufficient amount of data to make accurate predictions and I will be on the lookout for more APIs or useful data.
+          </p>
         </ul>
       </SectionCard>
       <SectionCard title="Raw vs Cleaned Snapshots">
