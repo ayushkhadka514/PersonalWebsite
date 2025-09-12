@@ -243,14 +243,45 @@ function DataPrepEDA() {
       <SectionCard title="Data Sources & Access">
         <ul className="list-disc pl-6 space-y-1">
           <p>
-            For my data so far, I have two main sources, the <a> href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" CBBData API</a> and I also webscraped from <a> href="https://barttorvik.com/trank.php?year=2025#" barttorvik</a>. I ensured to follow all terms and regulations to webscrape from barttorvik. I used Python's BeautfulSoup and Requests library to webscrape off of the website and got lots of raw data and for the most part, it was very clean. From barttorvik, I was bale to get statistics from every team that made the NCAA March Madness Tournament since 2008 all the way to 2025 aside from 2020 because that was the COVID season so there is very limited data and no tournament that year. The features that I selected from barttorvik were Team, Conference, Games Played, Games Won and Lost, Adjusted Offensive Rating, Adjusted Defensive Rating, Efficiency Field Goal Percentage, and Defensive Field Goal Percentage. The website was super clean with data, there weren't any NaN values to impute, the main things I had to clean were ensuring the College names were correct and easy to read in teh dataframe and I manually imputed the result column for each team since it was not correctly scraping how far a team went in the tournament. I then also added my own column called win%, eliminating the need for Games won, Games Played, and Games Lost.
-
-            Bartorrvik was a great website to scrape from for past team data, but it lacked more recent data, and it also lacked indivudal player data and other team statistics such as 3 point percentage and other shooting analytics. I was able to obtain these from the CBBData API. The API also works with barttorvik but the API has a lot more recent data whereas the website is more focused on team analytics from the past. Combining the two, I think I will have a sufficient amount of data to make accurate predictions and I will be on the lookout for more APIs or useful data.
+            This project currently draws on two primary data sources: the
+            <a href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" target="_blank" rel="noreferrer">NCAA API (henrygd/ncaa-api)</a>
+            and team statistics scraped from
+            <a href="https://barttorvik.com/trank.php?year=2025#" target="_blank" rel="noreferrer">Barttorvik</a>.
+            The project adhered to the website’s terms while collecting data. Python’s
+            <em>BeautifulSoup</em> and <em>requests</em> libraries were used to scrape the site and assemble raw datasets that were generally clean.
+            From Barttorvik, the dataset includes statistics for every team that made the NCAA March Madness Tournament from 2008 through 2025, excluding 2020 (the tournament was not held due to COVID-19).
+            Selected features include Team, Conference, Games Played, Games Won and Lost, Adjusted Offensive Rating, Adjusted Defensive Rating, Effective Field Goal Percentage, and Defensive Effective Field Goal Percentage.
+            The source data contained no notable missing values; the main cleaning steps involved standardizing college names for readability and manually imputing the “result” column when the scraper could not reliably capture how far a team advanced.
+            A derived Win% column was also added, removing the need to carry separate Games Won, Games Played, and Games Lost columns.
           </p>
+
+          <p>
+            Barttorvik provided strong historical team data, but it lacked some recent updates, individual player metrics, and certain team shooting splits (e.g., three-point percentage and related analytics).
+            To address these gaps, the project incorporates the
+            <a href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" target="_blank" rel="noreferrer">NCAA API</a>,
+            which complements Barttorvik by offering more current information.
+            In combination, these sources are expected to provide sufficient coverage for building accurate predictions, and additional APIs or datasets will be evaluated as the project progresses.
+          </p>
+
         </ul>
       </SectionCard>
       <SectionCard title="Raw vs Cleaned Snapshots">
-        <p>Insert small images or screenshots showing portions of the raw data alongside cleaned/standardized versions, so readers can see the transformation.</p>
+        <Image
+          src={`${import.meta.env.BASE_URL}/barttorvik.png`}
+          caption="Barttorvik.com website"
+        />
+        <Image
+          src={`${import.meta.env.BASE_URL}/scrape.png`}
+          caption="Webscraping code before cleaning"
+        />
+        <Image
+          src={`${import.meta.env.BASE_URL}/raw_data.png`}
+          caption="Raw Data"
+        />
+        <Image
+          src={`${import.meta.env.BASE_URL}/clean_data.png`}
+          caption="Clean Data"
+        />
       </SectionCard>
       <SectionCard title="Exploration & Summaries">
         <p>Provide quick visuals and descriptive summaries: distributions (e.g., points, margins), missingness, outliers, home/away splits, and early observations.</p>
