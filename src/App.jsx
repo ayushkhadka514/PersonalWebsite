@@ -175,9 +175,18 @@ function IntroContent() {
       </SectionCard>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Image src="https://placehold.co/600x400" alt="Stadium crowd" />
-        <Image src="https://placehold.co/600x400" alt="Sideline view" />
-        <Image src="https://placehold.co/600x400" alt="Football on turf" />
+        <Image
+          src={`${import.meta.env.BASE_URL}/court.jpg`}
+          alt="Portrait"
+        />
+        <Image
+          src={`${import.meta.env.BASE_URL}/trophy.jpg`}
+          alt="Portrait"
+        />
+        <Image
+          src={`${import.meta.env.BASE_URL}/blank-march-madness-bracket-1.png`}
+          alt="Portrait"
+        />
       </div>
     </div>
   );
@@ -188,7 +197,7 @@ function ConclusionsContent() {
     <div className="space-y-6">
       <SectionCard title="Conclusions (Non‑Technical)">
         <p>
-          This space will present plain‑language takeaways anyone can use, focusing on people, places, and practical next steps without any jargon. It will connect the dots between everyday experiences and the patterns observed, explain what changed and for whom, and describe what actions matter most for fans and communities. It will avoid references to specific models, methods, parameters, or code so that the message stays clear for all readers. It will use simple visuals and photographs to anchor the story in real life rather than abstractions. It will compare what weekends looked like before and after the work, emphasizing clarity over precision. It will highlight who benefits first, who might be left out, and what choices could close those gaps. It will suggest steps that viewers, local businesses, and community leaders can take, acknowledging limits and trade‑offs. It will return to the original motivations and show how the findings respond to them. It will be organized as 5+ paragraphs with images, and it will be kept current as the project evolves. It will end with a short reflection on what surprised us most and what still needs attention.
+        Work in progress...
         </p>
       </SectionCard>
       <div className="grid md:grid-cols-2 gap-6">
@@ -382,7 +391,7 @@ export default function App() {
         {mode === "project" && (
           <div className="w-full px-6 pb-4">
             <div className="text-sm text-gray-500 mb-2">
-              <button className="underline" onClick={() => goHome("projects")}>Projects</button> <span className="mx-1">›</span> CSCI 5612: NFL Game Winner Prediction
+              <button className="underline" onClick={() => goHome("projects")}>Projects</button> <span className="mx-1">›</span> CSCI 5612: March Madness Predictor
             </div>
             <div className="flex gap-2 overflow-x-auto whitespace-nowrap pr-2">
               {PROJECT_TABS.map((t) => (
@@ -407,7 +416,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="border-t">
         <div className="w-full px-6 py-6 text-sm text-gray-500 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <span>© {new Date().getFullYear()} Your Name — All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Ayush Khadka — All rights reserved.</span>
           <span>
             Built with React & Tailwind. Update this site as you progress through each module part.
           </span>
