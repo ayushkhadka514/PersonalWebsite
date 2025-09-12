@@ -266,22 +266,28 @@ function DataPrepEDA() {
         </ul>
       </SectionCard>
       <SectionCard title="Raw vs Cleaned Snapshots">
-        <Image
-          src={`${import.meta.env.BASE_URL}/barttorvik.png`}
-          caption="Barttorvik.com website"
-        />
-        <Image
-          src={`${import.meta.env.BASE_URL}/scrape.png`}
-          caption="Webscraping code before cleaning"
-        />
-        <Image
-          src={`${import.meta.env.BASE_URL}/raw_data.png`}
-          caption="Raw Data"
-        />
-        <Image
-          src={`${import.meta.env.BASE_URL}/clean_data.png`}
-          caption="Clean Data"
-        />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<Image
+src={`${import.meta.env.BASE_URL}images/barttorvik.png`}
+alt="Barttorvik.com website"
+caption="Barttorvik.com website"
+/>
+<Image
+src={`${import.meta.env.BASE_URL}images/scrape.png`}
+alt="Web scraping code before cleaning"
+caption="Web scraping code before cleaning"
+/>
+<Image
+src={`${import.meta.env.BASE_URL}images/raw_data.png`}
+alt="Raw Data"
+caption="Raw Data"
+/>
+<Image
+src={`${import.meta.env.BASE_URL}images/clean_data.png`}
+alt="Clean Data"
+caption="Clean Data"
+/>
+</div>
       </SectionCard>
       <SectionCard title="Exploration & Summaries">
         <p>Provide quick visuals and descriptive summaries: distributions (e.g., points, margins), missingness, outliers, home/away splits, and early observations.</p>
