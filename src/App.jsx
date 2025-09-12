@@ -445,6 +445,10 @@ function DataPrepEDA() {
         </div>
       </SectionCard>
 
+      {/* 10 visualization thumbnails → fullscreen lightbox */}
+      <SectionCard title="Visualization Gallery (click thumbnails to expand)">
+        <LightboxGallery items={GALLERY_ITEMS} />
+      </SectionCard>
       <SectionCard title="Exploration & Summaries">
         <p>
           The data highlights a consistent story: defensive strength is a key differentiator in March success. The Mean ADJDE by Result shows that teams advancing deeper in the tournament have stronger defenses on average, with champions consistently posting the lowest (best) defensive efficiency. Paired with the ADJOE vs. ADJDE scatter, the importance of balance becomes clear — elite teams often cluster in the bottom-right, combining high offensive efficiency with low defensive efficiency. This balance is reinforced by the correlation heatmap, where BARTHAG is strongly associated with both ADJOE and ADJDE, confirming it as a composite measure of team strength.
@@ -455,11 +459,6 @@ function DataPrepEDA() {
         <p>
           Tournament-wide dynamics also emerge. The Survival curves for double-digit seeds quantify the rarity of Cinderella runs: while most exit early, certain seeds (like 11s and 12s) have a non-negligible chance to reach the Sweet 16 or beyond. The Turnover Rate by Result visualization highlights another subtle factor — deeper teams tend to be more disciplined with the ball. Finally, the Underdog round progression counts give a clear picture of just how steep the uphill climb is for double-digit seeds, with Sweet 16 and Elite Eight runs being historically rare but impactful when they occur.
         </p>
-      </SectionCard>
-
-      {/* 10 visualization thumbnails → fullscreen lightbox */}
-      <SectionCard title="Visualization Gallery (click thumbnails to expand)">
-        <LightboxGallery items={GALLERY_ITEMS} />
       </SectionCard>
     </div>
   );
