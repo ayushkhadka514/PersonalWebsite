@@ -1,15 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
 
+/*
+  All files live directly in /public:
+    large.jpg
+    March-Madness-Symbol.png
+    court.jpg
+    trophy.jpg
+    blank-march-madness-bracket-1.png
+    barttorvik.png
+    scrape.png
+    raw_data.png
+    clean_data.png
+    v1.png ... v10.png  (10 data visualizations)
+    resume.pdf (optional)
+*/
+
 // ------------------------------------------------------------
 // Personal Website — Two-level navigation
-// Top nav: About Me, Projects (dropdown), Resume
-// Project: CSCI 5612: March Madness
-// Selecting the project reveals project-specific tabs: Introduction,
-// Conclusions, DataPrep_EDA, Clustering, PCA, NaiveBayes, DecTrees,
-// SVMs, Regression, NN.
 // ------------------------------------------------------------
-
-// Project-specific tabs
 const PROJECT_TABS = [
   { id: "introduction", label: "Introduction" },
   { id: "conclusions", label: "Conclusions" },
@@ -49,15 +57,130 @@ function SectionCard({ title, children }) {
   );
 }
 
-
-function Image({ src, alt }) {
+/** Image with optional caption/credit */
+function Image({ src, alt = "", caption, credit, creditUrl }) {
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="w-full rounded-xl shadow object-cover"
-      loading="lazy"
-    />
+    <figure className="w-full rounded-xl bg-white shadow overflow-hidden">
+      <img src={src} alt={alt} className="w-full h-auto block" loading="lazy" />
+      {(caption || credit) && (
+        <figcaption className="px-4 py-2 text-sm text-gray-600 text-center">
+          {caption}
+          {credit && (
+            <>
+              {" "}
+              <span className="italic">
+                —{" "}
+                {creditUrl ? (
+                  <a
+                    className="underline"
+                    href={creditUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {credit}
+                  </a>
+                ) : (
+                  credit
+                )}
+              </span>
+            </>
+          )}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+/* ---------- Lightbox Gallery: thumbnails with captions → fullscreen modal ---------- */
+function LightboxGallery({ items }) {
+  const [openIndex, setOpenIndex] = useState(null);
+  const hasOpen = openIndex !== null;
+
+  const close = () => setOpenIndex(null);
+  const next = () => setOpenIndex((i) => (i === null ? 0 : (i + 1) % items.length));
+  const prev = () => setOpenIndex((i) => (i === null ? 0 : (i - 1 + items.length) % items.length));
+
+  useEffect(() => {
+    if (!hasOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [hasOpen, items.length]);
+
+  return (
+    <div className="w-full">
+      {/* Thumbnails */}
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {items.map((it, i) => (
+          <figure key={i} className="group rounded-xl overflow-hidden bg-white shadow">
+            <button
+              onClick={() => setOpenIndex(i)}
+              className="relative w-full block"
+              aria-label={`Open visualization: ${it.caption || it.alt || `Image ${i + 1}`}`}
+            >
+              <img
+                src={it.src}
+                alt={it.alt || it.caption || "Visualization"}
+                className="w-full h-40 object-cover block"
+              />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition" />
+            </button>
+            {it.caption && (
+              <figcaption className="px-3 py-2 text-xs text-gray-600 text-center">
+                {it.caption}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+
+      {/* Modal */}
+      {hasOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            onClick={close}
+            className="absolute top-4 right-4 rounded-full bg-white/10 text-white hover:bg-white/20 p-2"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+          <button
+            onClick={prev}
+            className="absolute left-2 md:left-6 rounded-full bg-white/10 text-white hover:bg-white/20 p-3"
+            aria-label="Previous"
+          >
+            ‹
+          </button>
+          <figure className="max-w-[min(1200px,100%)] w-full text-center">
+            <img
+              src={items[openIndex].src}
+              alt={items[openIndex].alt || items[openIndex].caption || "Visualization"}
+              className="max-h-[75vh] w-auto mx-auto object-contain"
+            />
+            {items[openIndex].caption && (
+              <figcaption className="mt-3 text-sm md:text-base text-gray-100">
+                {items[openIndex].caption}
+              </figcaption>
+            )}
+          </figure>
+          <button
+            onClick={next}
+            className="absolute right-2 md:right-6 rounded-full bg-white/10 text-white hover:bg-white/20 p-3"
+            aria-label="Next"
+          >
+            ›
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -68,19 +191,18 @@ function AboutMeContent() {
   return (
     <div className="space-y-8">
       <div className="grid md:grid-cols-2 gap-6 items-center">
-        <Image
-          src={`${import.meta.env.BASE_URL}/large.jpg`}
-          alt="Portrait"
-        />
+        <Image src={`${import.meta.env.BASE_URL}large.jpg`} alt="Portrait" />
         <div className="space-y-3">
           <h2 className="text-3xl font-bold">Hi, I’m Ayush Khadka</h2>
-          <p className="text-gray-600">I’m a student and builder interested in data science, machine learning, and turning real‑world problems into simple, human‑centered tools. This site collects my projects, notes, and experiments.</p>
+          <p className="text-gray-600">
+            I’m a student and builder interested in data science, machine learning, and
+            turning real-world problems into simple, human-centered tools. This site collects
+            my projects, notes, and experiments.
+          </p>
         </div>
       </div>
       <SectionCard title="About Me">
-        <p>
-          Work in progress....
-        </p>
+        <p>Work in progress....</p>
       </SectionCard>
     </div>
   );
@@ -93,10 +215,14 @@ function ProjectsLanding({ openProject }) {
         <p>Choose a project to view details.</p>
       </SectionCard>
       <div className="grid md:grid-cols-3 gap-6">
-        <button onClick={() => openProject("csci5612")}
-          className="bg-white rounded-2xl shadow p-6 text-left hover:shadow-md transition">
+        <button
+          onClick={() => openProject("csci5612")}
+          className="bg-white rounded-2xl shadow p-6 text-left hover:shadow-md transition"
+        >
           <h3 className="text-lg font-semibold">CSCI 5612: March Madness Bracket Buster</h3>
-          <p className="text-gray-600 mt-2">A course project exploring how to predict the winner of the NCAA March Madness tournament.</p>
+          <p className="text-gray-600 mt-2">
+            A course project exploring how to predict the winner of the NCAA March Madness tournament.
+          </p>
         </button>
       </div>
     </div>
@@ -108,7 +234,15 @@ function ResumeContent() {
     <div className="space-y-8">
       <SectionCard title="Resume">
         <p>
-          Drop your <strong>resume.pdf</strong> into the public folder and link it here. Example: <a className="underline" href="/resume.pdf" target="_blank" rel="noreferrer">Open my resume</a>.
+          Drop your <strong>resume.pdf</strong> into the public folder and link it here. Example:{" "}
+          <a
+            className="underline"
+            href={`${import.meta.env.BASE_URL}resume.pdf`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open my resume
+          </a>.
         </p>
       </SectionCard>
     </div>
@@ -116,77 +250,93 @@ function ResumeContent() {
 }
 
 // -------------------------
-// PROJECT VIEWS — March Madness (NON‑TECHNICAL INTRO)
+// PROJECT VIEWS — March Madness
 // -------------------------
 function IntroContent() {
   return (
     <div className="space-y-8">
       <div className="grid md:grid-cols-2 gap-6 items-center">
         <Image
-          src={`${import.meta.env.BASE_URL}/March-Madness-Symbol.png`}
-          alt="Portrait"
+          src={`${import.meta.env.BASE_URL}March-Madness-Symbol.png`}
+          alt="March Madness symbol"
         />
         <div className="space-y-4">
-          <h2 className="text-2xl md:text-3xl font-bold">Predicting the March Madness Tournament: What It Is and Why It Matters</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Predicting the March Madness Tournament: What It Is and Why It Matters
+          </h2>
           <p className="text-gray-600">
-            Every March, people all around the world gather to watch one of the most cultivating sports tournaments, March Madness. 
+            Every March, people all around the world gather to watch one of the most captivating sports tournaments, March Madness.
           </p>
         </div>
       </div>
 
-      {/* Paragraph 1: Background & Motivation — 10+ sentences, non‑technical */}
       <SectionCard title="Background & Motivation">
         <p>
-          March Madness is a national college basketball tournament that captures attention well beyond sports pages. It turns ordinary weekdays into appointment television and transforms living rooms and cafeterias into watch parties. People talk about it in classrooms, group chats, and checkout lines because the stories feel immediate and human. The event blends tradition, school pride, and the thrill of single-elimination drama where one hot streak can change everything. Underdogs become household names overnight, and buzzer-beaters are replayed until they feel like shared memories. Brackets give everyone a simple way to participate even if they do not follow basketball all year. Friends compare picks, families tease one another, and coworkers bond over improbable runs. The chase for a “perfect bracket” is a playful myth that invites people to try anyway. The tournament also shines a light on campuses and communities that rarely get the spotlight. It brings together alumni who have moved far away and students who are just learning school traditions. The motivation for this project is to make the experience more understandable for anyone who wants to follow along with curiosity and joy.
+          March Madness is a national college basketball tournament that captures attention well beyond sports pages. It turns ordinary
+          weekdays into appointment television and transforms living rooms and cafeterias into watch parties. People talk about it in classrooms,
+          group chats, and checkout lines because the stories feel immediate and human. The event blends tradition, school pride, and the thrill
+          of single-elimination drama where one hot streak can change everything. Underdogs become household names overnight, and buzzer-beaters
+          are replayed until they feel like shared memories. Brackets give everyone a simple way to participate even if they do not follow basketball
+          all year. Friends compare picks, families tease one another, and coworkers bond over improbable runs. The chase for a “perfect bracket” is a
+          playful myth that invites people to try anyway. The tournament also shines a light on campuses and communities that rarely get the spotlight.
+          It brings together alumni who have moved far away and students who are just learning school traditions. The motivation for this project is to
+          make the experience more understandable for anyone who wants to follow along with curiosity and joy.
         </p>
-
       </SectionCard>
 
-      {/* Paragraph 2: Who It Affects — 10+ sentences */}
       <SectionCard title="Who It Affects">
         <p>
-          March Madness touches people with very different schedules, interests, and backgrounds. Students plan study breaks around tipoffs and share highlights in dorm lounges. Alumni dig out old sweatshirts and reconnect with classmates they have not seen in years. Casual viewers jump in because coworkers are filling out brackets and they do not want to be left out of the conversation. Local restaurants, bars, and delivery drivers feel rushes when games are close and crowds stay for another round. Campus bookstores and small shops sell gear that becomes part of the celebration. Teachers and managers notice small dips in attention on big game days and try to strike a friendly balance. City workers coordinate transit and gathering spaces when a nearby team advances. Families find it easy to watch together because the rules are simple and the stakes are easy to grasp. Broadcasters, writers, and photographers tell stories that keep people engaged between games. Even people who do not watch basketball hear the echoes through office chatter, neighborhood cheers, and school spirit days.
+          March Madness touches people with very different schedules, interests, and backgrounds. Students plan study breaks around tipoffs and share
+          highlights in dorm lounges. Alumni dig out old sweatshirts and reconnect with classmates they have not seen in years. Casual viewers jump in
+          because coworkers are filling out brackets and they do not want to be left out of the conversation. Local restaurants, bars, and delivery drivers
+          feel rushes when games are close and crowds stay for another round. Campus bookstores and small shops sell gear that becomes part of the celebration.
+          Teachers and managers notice small dips in attention on big game days and try to strike a friendly balance. City workers coordinate transit and
+          gathering spaces when a nearby team advances. Families find it easy to watch together because the rules are simple and the stakes are easy to grasp.
+          Broadcasters, writers, and photographers tell stories that keep people engaged between games. Even people who do not watch basketball hear the echoes
+          through office chatter, neighborhood cheers, and school spirit days.
         </p>
-
       </SectionCard>
 
-      {/* Paragraph 3: Why It Matters — 10+ sentences */}
       <SectionCard title="Why It Matters">
         <p>
-          The tournament matters because it turns statistics and schedules into stories that people can carry with them. It offers a shared calendar in early spring when many communities are ready for something hopeful. It creates small rituals like printing a bracket, choosing a surprise pick, and checking scores on a phone between tasks. It gives smaller schools a rare stage to show who they are beyond a headline. It strengthens ties between campuses and hometowns as people cheer for the same colors from far away. It gives families a reason to sit together and root for the same outcome across generations. It encourages friendly competition without demanding deep expertise or specialized language. It reminds everyone that uncertainty is part of life and that favorites can fail while unknowns can rise. It brings moments of joy that people revisit for years, especially when a local team goes further than expected. It also invites reflection about fairness, opportunity, and the value of preparation meeting luck. In short, it turns a busy month into a festival of shared attention and collective memory.
+          The tournament matters because it turns statistics and schedules into stories that people can carry with them. It offers a shared calendar in early spring
+          when many communities are ready for something hopeful. It creates small rituals like printing a bracket, choosing a surprise pick, and checking scores on a
+          phone between tasks. It gives smaller schools a rare stage to show who they are beyond a headline. It strengthens ties between campuses and hometowns as people
+          cheer for the same colors from far away. It gives families a reason to sit together and root for the same outcome across generations. It encourages friendly
+          competition without demanding deep expertise or specialized language. It reminds everyone that uncertainty is part of life and that favorites can fail while
+          unknowns can rise. It brings moments of joy that people revisit for years, especially when a local team goes further than expected. It also invites reflection
+          about fairness, opportunity, and the value of preparation meeting luck. In short, it turns a busy month into a festival of shared attention and collective memory.
         </p>
-
       </SectionCard>
 
-      {/* Paragraph 4: What Has Been Tried — 10+ sentences */}
       <SectionCard title="What Has Been Tried">
         <p>
-          People have tried many simple ways to guess winners long before the first tip. Some rely on seed lines because they are visible and easy to compare. Others look at recent momentum and whether a team is peaking at the right time. Fans trade folklore about common upsets and keep an eye on matchups that feel uncomfortable for favorites. Office pools blend loyalty, intuition, and a dash of superstition that keeps things light. Broadcasters gather former players and coaches to share insights from film rooms and locker rooms. Writers offer regional context about travel, venue vibes, and fan turnout that can shape nerves. Friends vote in group chats and create crowd picks that smooth out extreme opinions. Some people pick by mascots, colors, or coin flips just to stay in the game. Many follow bracket previews and interviews that frame each day like a set of mini-stories. All these approaches have a common goal: making the tournament more enjoyable by setting expectations without spoiling the surprise.
+          People have tried many simple ways to guess winners long before the first tip. Some rely on seed lines because they are visible and easy to compare. Others look at
+          recent momentum and whether a team is peaking at the right time. Fans trade folklore about common upsets and keep an eye on matchups that feel uncomfortable for
+          favorites. Office pools blend loyalty, intuition, and a dash of superstition that keeps things light. Broadcasters gather former players and coaches to share insights
+          from film rooms and locker rooms. Writers offer regional context about travel, venue vibes, and fan turnout that can shape nerves. Friends vote in group chats and
+          create crowd picks that smooth out extreme opinions. Some people pick by mascots, colors, or coin flips just to stay in the game. Many follow bracket previews and
+          interviews that frame each day like a set of mini-stories. All these approaches have a common goal: making the tournament more enjoyable by setting expectations without
+          spoiling the surprise.
         </p>
-
       </SectionCard>
 
-      {/* Paragraph 5: What Can Still Be Done — 10+ sentences */}
       <SectionCard title="What Can Still Be Done">
         <p>
-          There is room to make predictions clearer and more welcoming for everyone who wants to play along. Explanations can use plain language that connects matchups to things people notice, like pace, experience, and how teams handle pressure. Visuals can be clean and focused so a reader understands the point at a glance. Confidence can be expressed honestly so close games are framed as close rather than as guarantees. Updates can follow a steady rhythm before each round so people know when to check back. Summaries can highlight not only who is favored but also what an underdog needs to pull an upset. Coverage can celebrate the joy of the women’s and men’s tournaments side by side so more fans find a team to love. Stories can respect student-athletes as people first and competitors second. Community voices can bring local color that national shows might miss. Simple recaps can show what was expected and what actually happened without blame, turning results into learning. With these steps, March Madness becomes easier to understand and even more fun to share.
+          There is room to make predictions clearer and more welcoming for everyone who wants to play along. Explanations can use plain language that connects matchups to things
+          people notice, like pace, experience, and how teams handle pressure. Visuals can be clean and focused so a reader understands the point at a glance. Confidence can be
+          expressed honestly so close games are framed as close rather than as guarantees. Updates can follow a steady rhythm before each round so people know when to check back.
+          Summaries can highlight not only who is favored but also what an underdog needs to pull an upset. Coverage can celebrate the joy of the women’s and men’s tournaments
+          side by side so more fans find a team to love. Stories can respect student-athletes as people first and competitors second. Community voices can bring local color that
+          national shows might miss. Simple recaps can show what was expected and what actually happened without blame, turning results into learning. With these steps, March
+          Madness becomes easier to understand and even more fun to share.
         </p>
-
       </SectionCard>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Image
-          src={`${import.meta.env.BASE_URL}/court.jpg`}
-          alt="Portrait"
-        />
-        <Image
-          src={`${import.meta.env.BASE_URL}/trophy.jpg`}
-          alt="Portrait"
-        />
-        <Image
-          src={`${import.meta.env.BASE_URL}/blank-march-madness-bracket-1.png`}
-          alt="Portrait"
-        />
+        <Image src={`${import.meta.env.BASE_URL}court.jpg`} alt="Court" />
+        <Image src={`${import.meta.env.BASE_URL}trophy.jpg`} alt="Trophy" />
+        <Image src={`${import.meta.env.BASE_URL}blank-march-madness-bracket-1.png`} alt="Blank March Madness bracket" />
       </div>
     </div>
   );
@@ -195,14 +345,12 @@ function IntroContent() {
 function ConclusionsContent() {
   return (
     <div className="space-y-6">
-      <SectionCard title="Conclusions (Non‑Technical)">
-        <p>
-        Work in progress...
-        </p>
+      <SectionCard title="Conclusions (Non-Technical)">
+        <p>Work in progress...</p>
       </SectionCard>
       <div className="grid md:grid-cols-2 gap-6">
-        <Image src="https://placehold.co/800x450" alt="Conclusion visual 1" />
-        <Image src="https://placehold.co/800x450" alt="Conclusion visual 2" />
+        <Image src="https://placehold.co/800x450" alt="Conclusion visual 1" caption="Conclusion visual 1" />
+        <Image src="https://placehold.co/800x450" alt="Conclusion visual 2" caption="Conclusion visual 2" />
       </div>
     </div>
   );
@@ -213,7 +361,8 @@ function PlaceholderMethod({ name }) {
     <div className="space-y-8">
       <SectionCard title={`${name} — Overview`}>
         <p>
-          Briefly describe the {name} method in plain language and state what you plan to do with it for this project. Consider adding a small diagram or illustration here to help readers visualize the idea.
+          Briefly describe the {name} method in plain language and state what you plan to do with it for this project.
+          Consider adding a small diagram or illustration here to help readers visualize the idea.
         </p>
       </SectionCard>
       <SectionCard title="Data">
@@ -230,7 +379,8 @@ function PlaceholderMethod({ name }) {
       </SectionCard>
       <SectionCard title="Results">
         <p>
-          Discuss and visualize the results relevant to your topic. Explain parameter choices and what the outcomes mean for everyday understanding. Include charts or small images as needed.
+          Discuss and visualize the results relevant to your topic. Explain parameter choices and what the outcomes mean for everyday understanding.
+          Include charts or small images as needed.
         </p>
       </SectionCard>
     </div>
@@ -238,59 +388,73 @@ function PlaceholderMethod({ name }) {
 }
 
 function DataPrepEDA() {
+  // 10-visualization gallery (all files in /public)
+  const GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}v1.png`, alt: "Seed distribution histogram", caption: "Seed distribution, 2008–2025" },
+    { src: `${import.meta.env.BASE_URL}v2.png`, alt: "Win% by seed boxplot", caption: "Win rate by seed" },
+    { src: `${import.meta.env.BASE_URL}v3.png`, alt: "AdjO vs AdjD scatter", caption: "AdjO vs AdjD, colored by round" },
+    { src: `${import.meta.env.BASE_URL}v4.png`, alt: "Pace histogram", caption: "Pace distribution across teams" },
+    { src: `${import.meta.env.BASE_URL}v5.png`, alt: "3PT% bar chart", caption: "Three-point shooting by region" },
+    { src: `${import.meta.env.BASE_URL}v6.png`, alt: "Conference strength heatmap", caption: "Conference strength heatmap" },
+    { src: `${import.meta.env.BASE_URL}v7.png`, alt: "Upset rate line plot", caption: "Upset rates by season" },
+    { src: `${import.meta.env.BASE_URL}v8.png`, alt: "Bracket path difficulty", caption: "Average path difficulty by seed" },
+    { src: `${import.meta.env.BASE_URL}v9.png`, alt: "Calibration curve", caption: "Win probability calibration" },
+    { src: `${import.meta.env.BASE_URL}v10.png`, alt: "Feature importance", caption: "Feature importance snapshot" },
+  ];
+
   return (
     <div className="space-y-8">
       <SectionCard title="Data Sources & Access">
-        <ul className="list-disc pl-6 space-y-1">
+        <div className="space-y-4">
           <p>
-            This project currently draws on two primary data sources: the
-            <a href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" target="_blank" rel="noreferrer">NCAA API (henrygd/ncaa-api)</a>
-            and team statistics scraped from
-            <a href="https://barttorvik.com/trank.php?year=2025#" target="_blank" rel="noreferrer">Barttorvik</a>.
-            The project adhered to the website’s terms while collecting data. Python’s
-            <em>BeautifulSoup</em> and <em>requests</em> libraries were used to scrape the site and assemble raw datasets that were generally clean.
-            From Barttorvik, the dataset includes statistics for every team that made the NCAA March Madness Tournament from 2008 through 2025, excluding 2020 (the tournament was not held due to COVID-19).
-            Selected features include Team, Conference, Games Played, Games Won and Lost, Adjusted Offensive Rating, Adjusted Defensive Rating, Effective Field Goal Percentage, and Defensive Effective Field Goal Percentage.
-            The source data contained no notable missing values; the main cleaning steps involved standardizing college names for readability and manually imputing the “result” column when the scraper could not reliably capture how far a team advanced.
-            A derived Win% column was also added, removing the need to carry separate Games Won, Games Played, and Games Lost columns.
+            This project currently draws on two primary data sources: the{" "}
+            <a href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" target="_blank" rel="noreferrer" className="underline">
+              NCAA API (henrygd/ncaa-api)
+            </a>{" "}
+            and team statistics scraped from{" "}
+            <a href="https://barttorvik.com/trank.php?year=2025#" target="_blank" rel="noreferrer" className="underline">
+              Barttorvik
+            </a>.
+            The project adhered to the website’s terms while collecting data. Python’s <em>BeautifulSoup</em> and <em>requests</em> libraries were used to
+            scrape the site and assemble raw datasets that were generally clean. From Barttorvik, the dataset includes statistics for every team that made the
+            NCAA March Madness Tournament from 2008 through 2025, excluding 2020 (the tournament was not held due to COVID-19). Selected features include Team,
+            Conference, Games Played, Games Won and Lost, Adjusted Offensive Rating, Adjusted Defensive Rating, Effective Field Goal Percentage, and Defensive
+            Effective Field Goal Percentage. The source data contained no notable missing values; the main cleaning steps involved standardizing college names for
+            readability and manually imputing the “result” column when the scraper could not reliably capture how far a team advanced. A derived Win% column was
+            also added, removing the need to carry separate Games Won, Games Played, and Games Lost columns.
           </p>
 
           <p>
-            Barttorvik provided strong historical team data, but it lacked some recent updates, individual player metrics, and certain team shooting splits (e.g., three-point percentage and related analytics).
-            To address these gaps, the project incorporates the
-            <a href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" target="_blank" rel="noreferrer">NCAA API</a>,
-            which complements Barttorvik by offering more current information.
-            In combination, these sources are expected to provide sufficient coverage for building accurate predictions, and additional APIs or datasets will be evaluated as the project progresses.
+            Barttorvik provided strong historical team data, but it lacked some recent updates, individual player metrics, and certain team shooting splits
+            (e.g., three-point percentage and related analytics). To address these gaps, the project incorporates the{" "}
+            <a href="https://github.com/henrygd/ncaa-api?tab=readme-ov-file" target="_blank" rel="noreferrer" className="underline">
+              NCAA API
+            </a>
+            , which complements Barttorvik by offering more current information. In combination, these sources are expected to provide sufficient coverage for
+            building accurate predictions, and additional APIs or datasets will be evaluated as the project progresses.
           </p>
-
-        </ul>
+        </div>
       </SectionCard>
+
       <SectionCard title="Raw vs Cleaned Snapshots">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-<Image
-src={`${import.meta.env.BASE_URL}images/barttorvik.png`}
-alt="Barttorvik.com website"
-caption="Barttorvik.com website"
-/>
-<Image
-src={`${import.meta.env.BASE_URL}images/scrape.png`}
-alt="Web scraping code before cleaning"
-caption="Web scraping code before cleaning"
-/>
-<Image
-src={`${import.meta.env.BASE_URL}images/raw_data.png`}
-alt="Raw Data"
-caption="Raw Data"
-/>
-<Image
-src={`${import.meta.env.BASE_URL}images/clean_data.png`}
-alt="Clean Data"
-caption="Clean Data"
-/>
-</div>
+          <Image src={`${import.meta.env.BASE_URL}barttorvik.png`} alt="Barttorvik.com website" caption="Barttorvik.com website" />
+          <Image src={`${import.meta.env.BASE_URL}scrape.png`} alt="Web scraping code before cleaning" caption="Web scraping code before cleaning" />
+          <Image src={`${import.meta.env.BASE_URL}raw_data.png`} alt="Raw Data" caption="Raw Data" />
+          <Image src={`${import.meta.env.BASE_URL}clean_data.png`} alt="Clean Data" caption="Clean Data" />
+        </div>
       </SectionCard>
+
       <SectionCard title="Exploration & Summaries">
-        <p>Provide quick visuals and descriptive summaries: distributions (e.g., points, margins), missingness, outliers, home/away splits, and early observations.</p>
+        <p>
+          Provide quick visuals and descriptive summaries: distributions (e.g., points, margins), missingness, outliers, home/away or seed splits, and early
+          observations.
+        </p>
+      </SectionCard>
+
+      {/* 10 visualization thumbnails → fullscreen lightbox */}
+      <SectionCard title="Visualization Gallery (click thumbnails to expand)">
+        <LightboxGallery items={GALLERY_ITEMS} />
       </SectionCard>
     </div>
   );
@@ -309,10 +473,9 @@ function useOutsideClick(ref, handler) {
 }
 
 export default function App() {
-  // App state
-  const [mode, setMode] = useState("home"); // 'home' | 'project'
-  const [homeTab, setHomeTab] = useState("about"); // 'about' | 'projects' | 'resume'
-  const [activeProject, setActiveProject] = useState(null); // e.g., 'csci5612'
+  const [mode, setMode] = useState("home");
+  const [homeTab, setHomeTab] = useState("about");
+  const [activeProject, setActiveProject] = useState(null);
   const [projectTab, setProjectTab] = useState("introduction");
   const [showProjectsMenu, setShowProjectsMenu] = useState(false);
   const menuRef = useRef(null);
@@ -331,7 +494,6 @@ export default function App() {
     setActiveProject(null);
   };
 
-  // Render helpers
   const renderHome = () => {
     switch (homeTab) {
       case "about":
@@ -373,23 +535,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* HEADER */}
+    <div className="min-h-screen bg-gray-50 w-screen">
       <header className="sticky top-0 z-10 backdrop-blur bg-white/80 border-b">
         <div className="w-full px-6 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => goHome("about")}>
             <div className="w-10 h-10 rounded-2xl bg-black text-white grid place-items-center font-bold">AK</div>
             <div>
               <h1 className="text-xl font-semibold">Ayush Khadka</h1>
-              <p className="text-sm text-gray-500">CS and Math@ CU Boulder</p>
+              <p className="text-sm text-gray-500">CS and Math @ CU Boulder</p>
             </div>
           </div>
 
-          {/* Top-level nav */}
           <nav className="flex gap-2 items-center">
             <TabButton id="about" label="About Me" active={mode === "home" && homeTab === "about"} onClick={() => goHome("about")} />
 
-            {/* Projects dropdown */}
             <div className="relative" ref={menuRef}>
               <button
                 className={
@@ -412,10 +571,7 @@ export default function App() {
               </button>
               {showProjectsMenu && (
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow border p-2">
-                  <button
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100"
-                    onClick={() => openProject("csci5612")}
-                  >
+                  <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100" onClick={() => openProject("csci5612")}>
                     CSCI 5612: March Madness Predictor
                   </button>
                 </div>
@@ -426,7 +582,6 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Project subnav (only when a project is open) */}
         {mode === "project" && (
           <div className="w-full px-6 pb-4">
             <div className="text-sm text-gray-500 mb-2">
@@ -434,31 +589,21 @@ export default function App() {
             </div>
             <div className="flex gap-2 overflow-x-auto whitespace-nowrap pr-2">
               {PROJECT_TABS.map((t) => (
-                <TabButton
-                  key={t.id}
-                  id={t.id}
-                  label={t.label}
-                  active={projectTab === t.id}
-                  onClick={setProjectTab}
-                />
+                <TabButton key={t.id} id={t.id} label={t.label} active={projectTab === t.id} onClick={setProjectTab} />
               ))}
             </div>
           </div>
         )}
       </header>
 
-      {/* MAIN */}
       <main className="w-full px-6 py-8 space-y-8 overflow-x-hidden">
         {mode === "home" ? renderHome() : renderProject()}
       </main>
 
-      {/* FOOTER */}
       <footer className="border-t">
         <div className="w-full px-6 py-6 text-sm text-gray-500 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <span>© {new Date().getFullYear()} Ayush Khadka — All rights reserved.</span>
-          <span>
-            Built with React & Tailwind. Update this site as you progress through each module part.
-          </span>
+          <span>Built with React & Tailwind</span>
         </div>
       </footer>
     </div>
