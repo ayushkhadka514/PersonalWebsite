@@ -464,6 +464,462 @@ function DataPrepEDA() {
   );
 }
 
+function ClusteringMethod() {
+  const GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}hclust.png`, alt: "Seed distribution histogram", caption: "Hierarchical Clustering Analysis" },
+    { src: `${import.meta.env.BASE_URL}k elbow.png`, alt: "Win% by seed boxplot", caption: "AElbow Plot for Optimal K" },
+    { src: `${import.meta.env.BASE_URL}k result.png`, alt: "AdjO vs AdjD scatter", caption: "K= 8 Means Analysis" },
+    { src: `${import.meta.env.BASE_URL}Silhouette.png`, alt: "Pace histogram", caption: "Silhouette plot for optimal K" },
+    { src: `${import.meta.env.BASE_URL}kmeans.png`, alt: "3PT% bar chart", caption: "K=8 Means Clustering with 2PCA" },
+    { src: `${import.meta.env.BASE_URL}dendrogram.png`, alt: "Conference strength heatmap", caption: "Hierarchical Clustering Dendrogram" },
+    { src: `${import.meta.env.BASE_URL}k=5.png`, alt: "Conference strength heatmap", caption: "K=5 Cluster" },
+    { src: `${import.meta.env.BASE_URL}k=6.png`, alt: "Conference strength heatmap", caption: "k=6 Cluster" },
+
+  ];
+  return (
+    <div className="space-y-8">
+      {/* (a) Overview */}
+      <SectionCard title="Clustering Overview">
+  <p>
+    Clustering is an <strong>unsupervised learning</strong> method that groups observations 
+    into collections of similar items, called clusters, without requiring predefined labels. 
+    Unlike supervised models, which learn from known outcomes, clustering is designed for 
+    <em>exploration and discovery</em>. In this project, clustering allows us to uncover 
+    natural groupings of basketball teams that share statistical profiles, and then examine 
+    how those groups historically performed in the postseason.
+  </p>
+
+  <p>
+    There are two main paradigms of clustering used here:
+  </p>
+  <ul className="list-disc pl-6 space-y-1">
+    <li>
+      <strong>Partitional clustering</strong> (e.g., K-Means): directly partitions the dataset 
+      into <em>k</em> groups by iteratively assigning each point to the nearest cluster center 
+      and updating centers to minimize within-cluster variance. This method is efficient and 
+      produces non-overlapping, flat clusters. We applied K-Means in a reduced 
+      <strong>6-dimensional PCA space</strong>, which ensures distances reflect the 
+      most informative combinations of features while filtering noise and collinearity.
+    </li>
+    <li>
+      <strong>Hierarchical clustering</strong>: constructs a tree-like structure (a dendrogram) 
+      that represents nested levels of similarity. Agglomerative clustering starts with each 
+      team as its own cluster and repeatedly merges the closest pairs until all teams are 
+      in a single group. Cutting across the dendrogram at a given height yields a chosen 
+      number of clusters. This approach not only produces a partition but also reveals the 
+      relative similarity between clusters at multiple scales.
+    </li>
+  </ul>
+
+  <p>
+    A critical design choice is the <strong>distance metric</strong> used to quantify 
+    similarity. For K-Means, Euclidean distance is standard since the algorithm relies 
+    on geometric means. For hierarchical clustering, we used <strong>cosine similarity</strong>, 
+    which measures the angle between feature vectors. Cosine distance emphasizes 
+    the <em>pattern of features</em> (e.g., relative balance between offense and defense) 
+    rather than absolute magnitude. This is particularly useful when comparing teams that 
+    might differ in scale (pace, raw totals) but exhibit similar profiles in efficiency.
+  </p>
+
+  <p>
+    The overall purpose of clustering here is discovery: to identify recurring 
+    <em>archetypes of team styles</em> that persist across seasons. Once identified, 
+    these clusters can be mapped to postseason outcomes, providing a data-driven way 
+    to interpret current teams’ chances based on the historical performance of their 
+    cluster peers.
+  </p>
+
+  {/* Replace with your overview images */}
+  <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4">
+    <Image src={`${import.meta.env.BASE_URL}kmeans.png`} alt="Kmeans clustering" caption="K=8 Clusters on Past Data" />
+    <Image src={`${import.meta.env.BASE_URL}dendrogram.png`} alt="Hierarchical clustering" caption="Hierarchical Clustering Dendrogram" />
+  </div>
+</SectionCard>
+
+
+      {/* (b) Data */}
+      <SectionCard title="Data">
+        <p>
+          For the clustering analysis, we used the cleaned dataset from the Data Preparation & EDA section,
+          focusing on key team statistics from Barttorvik. The dataset includes features such as Adjusted Offensive Rating (ADJOE),
+          Adjusted Defensive Rating (ADJDE), Effective Field Goal Percentage (EFG_O and EFG_D), Turnover Rate (TOR), and some more key statistics.
+          These features were selected for their relevance in capturing team performance and style. The dataset spans multiple seasons (2008-2025, excluding 2020)
+          and includes all teams that participated in the NCAA March Madness tournament during this period.
+          Prior to clustering, the data was standardized to ensure all features contributed equally to distance calculations.
+          Dimensionality reduction via PCA was also applied to create a more manageable feature space for K-Means clustering. 
+          The final dataset used for clustering consists of 6 principal components that capture the majority of variance (~90%) in the original features.
+        </p>
+        <div className="space-y-2 mt-2">
+          <Image src={`${import.meta.env.BASE_URL}normalize.png`} alt="Numeric Features" caption="Numeric Features" />
+          <p>
+            <a href="https://github.com/ayushkhadka514/MarchMadness/tree/main/Project/Raw%20data" className="underline text-blue-600">
+              Raw data
+            </a>{" "}
+            |{" "}
+            <a href={`${import.meta.env.BASE_URL}pastCBB.csv`} className="underline text-blue-600">
+              Clean data
+            </a>
+          </p>
+        </div>
+      </SectionCard>
+
+      {/* (c) Code */}
+      <SectionCard title="Code">
+        <p>
+          The clustering was implemented in <strong>Python</strong> using NumPy, pandas,
+          scikit-learn, and SciPy. K-Means used Euclidean distance in PCA space; Hierarchical used
+          cosine similarity with average linkage. The Silhouette method guided the choice of{" "}
+          <em>k</em>.
+        </p>
+        <p>
+          Link to the notebook or repository:{" "}
+          <a href={`${import.meta.env.BASE_URL}Clustering-PCA.ipynb`} className="underline text-blue-600">
+            Clustering-PCA.ipynb
+          </a>{" "}
+            |{" "}
+          <a href="https://github.com/ayushkhadka514/MarchMadness/tree/main/Project" className="underline text-blue-600">
+            GitHub Repository
+          </a>
+        </p>
+      </SectionCard>
+
+      {/* (d) Results */}
+      <SectionCard title="Results">
+        <p>
+          Result wise, both methods of clustering were very similar. They were both able to produce clusters based on the past data, separating teams 
+          into different archetypes. In my personal opinion, I found K-Means to be easier to undersand and analyze thought due to the cluster
+          graphs being easier to read in comparision to the dendrogram. Both methods suggested around k=6 clusters, which gave me confidence in this number, however; 
+          I did try othe rk values as well. I think that the clusters are good to use to see how far a team can go in the tournament
+          based on how similar teams in their cluster have done in the past. The main drawback with these clustering methods is that they assign the current data directly to a cluster
+          without accounting for uncertainty. A probabilistic clustering method, like Gaussian Mixture Models, could provide a more nuanced view by estimating the likelihood of cluster membership.
+          In future work, I would like to explore this approach to better capture the uncertainty inherent in team performance and style.
+        </p>
+        <SectionCard title="Visualization Gallery (click thumbnails to expand)">
+          <LightboxGallery items={GALLERY_ITEMS} />
+        </SectionCard>
+      </SectionCard>
+      
+
+      {/* (e) Conclusions */}
+      <SectionCard title="Conclusions">
+        <p>
+          Clustering provided a clear, data-driven lens for describing team <em>archetypes</em>
+          across seasons and relating those styles to postseason outcomes. Using standardized
+          features and a 6-component PCA embedding (~90% variance retained), both K-Means
+          (Euclidean) and agglomerative hierarchical clustering (cosine, average linkage)
+          produced consistent, interpretable partitions. Diagnostics (silhouette, elbow and
+          dendrogram inspection) repeatedly pointed to a compact solution around <strong>k ≈ 6</strong>,
+          with similar structure observed for nearby values of <em>k</em>.
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            <strong>Consistency across methods:</strong> K-Means clusters and hierarchical
+            cuts identify near-matching groupings, increasing confidence that the structure
+            reflects real signal rather than a method artifact.
+          </li>
+          <li>
+            <strong>Interpretability:</strong> Clusters align with intuitive styles—e.g.,
+            offense-first, defense-first, and balanced efficiency profiles—driven by patterns
+            in ADJOE/ADJDE, EFG, and turnover metrics rather than raw magnitude.
+          </li>
+          <li>
+            <strong>Practical value:</strong> Mapping a current team to its nearest centroid
+            (in PCA space) yields an <em>archetype prior</em> for March outcomes based on how
+            historically similar teams fared. This is useful as a first pass for bracket
+            reasoning and for communicating style-based risk/ceiling.
+          </li>
+        </ul>
+
+        <p className="mt-2">
+          At the same time, there are important caveats. Hard assignments ignore uncertainty;
+          K-Means favors roughly spherical clusters and can under-represent overlapping or
+          elongated groups; PCA emphasizes variance, not necessarily predictiveness; and the
+          tournament subset introduces selection bias. Exogenous factors (injuries, coaching
+          changes, matchup effects) are also unmodeled.
+        </p>
+
+        <div className="mt-2">
+          <p className="font-semibold">Recommended next steps</p>
+          <ol className="list-decimal pl-6 space-y-1">
+            <li>
+              Adopt <strong>k = 6</strong> as the primary partition and publish “cluster cards”
+              (centroid profile + key stats + historical round-advance distribution).
+            </li>
+            <li>
+              Introduce <strong>probabilistic clustering</strong> (e.g., Gaussian Mixture Models)
+              to obtain soft memberships and propagate membership uncertainty into round-probabilities.
+            </li>
+            <li>
+              Perform <strong>season-out validation</strong>: fit on 2008–t, project season t+1,
+              and evaluate whether cluster priors improve calibration vs. baselines (seed, betting
+              lines, or simple Elo).
+            </li>
+            <li>
+              Assess <strong>stability</strong> via bootstrapping / perturbing features and report
+              ARI/NMI between runs; confirm the k≈6 solution is robust.
+            </li>
+            <li>
+              Enrich features with tempo, shot mix (3PA rate, FT rate), OR/DR rebound rates, and
+              schedule-adjusted variants; re-run PCA and clustering to test sensitivity.
+            </li>
+            <li>
+              Combine cluster priors with a <strong>predictive model</strong> (e.g., logistic or
+              gradient boosted trees) as features to forecast game/round outcomes.
+            </li>
+          </ol>
+        </div>
+
+        <p className="mt-2">
+          In short, clustering uncovers stable, interpretable team styles and offers a useful prior
+          for postseason expectations. With probabilistic assignments, stability checks, and proper
+          validation, these clusters can become a principled component of a broader forecasting
+          pipeline rather than a standalone heuristic.
+        </p>
+      </SectionCard>
+    </div>
+  );
+}
+
+function PCATab() {
+  // 🔧 Replace the filenames below with your actual image assets.
+  const GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}pca_scree.png`, alt: "Scree plot of eigenvalues", caption: "Scree Plot (Explained Variance by PC)" },
+    { src: `${import.meta.env.BASE_URL}pca_cumvar.png`, alt: "Cumulative explained variance", caption: "Cumulative Explained Variance" },
+    { src: `${import.meta.env.BASE_URL}pca_biplot.png`, alt: "PC1 vs PC2 biplot", caption: "PC1–PC2 Biplot (Scores + Loadings)" },
+    { src: `${import.meta.env.BASE_URL}pca_loadings_heatmap.png`, alt: "Loadings heatmap", caption: "Loadings Heatmap (Variables × PCs)" },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* (a) Overview */}
+      <SectionCard title="PCA Overview">
+        <p>
+          <strong>Principal Component Analysis (PCA)</strong> is a linear technique for
+          <em> dimensionality reduction</em>: it re-expresses a dataset in terms of new,
+          orthogonal axes (principal components) that capture maximal variance. Each component
+          is a linear combination of the original variables.
+        </p>
+
+        <p>
+          <strong>Eigenvalues</strong> quantify how much variance each principal component (PC)
+          explains, and <strong>eigenvectors</strong> (component loadings) give the direction
+          (weights on original variables) of each PC. If <code>S</code> is the covariance (or
+          correlation) matrix, PCA solves <code>S v = \lambda v</code>, yielding eigenpairs
+          <code>(\lambda, v)</code>. Sorting eigenvalues in descending order ranks the PCs by
+          importance.
+        </p>
+
+        <p>
+          <strong>Why reduce dimensionality?</strong> High-dimensional data can be noisy,
+          redundant, and hard to visualize. PCA mitigates: (i) <em>noise</em> by concentrating
+          signal into the first few PCs, (ii) <em>multicollinearity</em> by forming orthogonal
+          axes, and (iii) <em>visualization</em> by enabling 2D/3D plots of complex datasets.
+          This simplification aids downstream modeling and interpretation—especially when
+          distances and clusters depend on the most informative variation.
+        </p>
+
+        {/* 👇 Drop in two overview figures (or more) */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4">
+          <Image
+            src={`${import.meta.env.BASE_URL}pca_geometry.png`}
+            alt="Geometric view of PCA projection"
+            caption="Geometric intuition: rotate axes to capture maximum variance"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}eigen_explainer.png`}
+            alt="Eigenvalues and eigenvectors concept diagram"
+            caption="Eigenvalues (variance explained) and eigenvectors (directions)"
+          />
+        </div>
+      </SectionCard>
+
+      {/* (b) Data Prep */}
+      <SectionCard title="Data Prep">
+        <p>
+          PCA expects a <strong>numeric matrix</strong> (rows = observations, columns = features),
+          with <strong>no missing values</strong>. To make variables comparable and prevent scale
+          from dominating, data should be <strong>standardized</strong> (e.g., z-scores). If your
+          variables are on very different scales or measured in different units, using the
+          <strong> correlation matrix</strong> (i.e., standardized PCA) is recommended.
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Only numeric features (drop IDs, labels, text).</li>
+          <li>Impute or remove missing values; verify no constant-variance columns.</li>
+          <li>Standardize columns (mean 0, variance 1) before PCA.</li>
+          <li>Optionally subset to curated features (e.g., efficiency metrics) to focus signal.</li>
+        </ul>
+
+        {/* 👇 Show a sample of the data + link to the file */}
+        <div className="space-y-2 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}pca_datasample.png`}
+            alt="Sample of the PCA input data matrix"
+            caption="Sample of standardized input data (rows = teams, cols = features)"
+          />
+          <p>
+            <a
+              href={`${import.meta.env.BASE_URL}pca_input_sample.csv`}
+              className="underline text-blue-600"
+            >
+              Download sample data (CSV)
+            </a>{" "}
+            |{" "}
+            <a
+              href="https://your-repo-or-drive-link-to-raw-data"
+              className="underline text-blue-600"
+            >
+              Raw data source
+            </a>
+          </p>
+        </div>
+      </SectionCard>
+
+      {/* (c) Code */}
+      <SectionCard title="Code">
+        <p>
+          Implement PCA in <strong>Python</strong> (NumPy, pandas, scikit-learn) or{" "}
+          <strong>R</strong> (stats, FactoMineR, prcomp). Below are links to your code artifacts.
+        </p>
+        <p>
+          Python notebook:{" "}
+          <a
+            href={`${import.meta.env.BASE_URL}PCA.ipynb`}
+            className="underline text-blue-600"
+          >
+            PCA.ipynb
+          </a>{" "}
+          | R script:{" "}
+          <a
+            href={`${import.meta.env.BASE_URL}pca.R`}
+            className="underline text-blue-600"
+          >
+            pca.R
+          </a>{" "}
+          | Repository:{" "}
+          <a
+            href="https://github.com/your-username/your-project"
+            className="underline text-blue-600"
+          >
+            GitHub
+          </a>
+        </p>
+
+        {/* (Optional) Tiny reference of the core calls, keep or remove */}
+        <div className="rounded-xl bg-gray-50 p-4 text-sm overflow-x-auto">
+          <p className="font-semibold mb-1">Python (scikit-learn):</p>
+          <pre className="whitespace-pre-wrap">
+{`from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+X_std = StandardScaler().fit_transform(X)        # shape: (n_samples, n_features)
+pca   = PCA(n_components=None, svd_solver="full")
+Z     = pca.fit_transform(X_std)                 # scores
+explained = pca.explained_variance_ratio_        # per-PC variance share
+loadings  = pca.components_.T                    # variables × PCs`}
+          </pre>
+
+          <p className="font-semibold mt-3 mb-1">R (prcomp):</p>
+          <pre className="whitespace-pre-wrap">
+{`X_std <- scale(X)                               # center/scale
+fit   <- prcomp(X_std, center = TRUE, scale. = TRUE)
+scores    <- fit$x                               # PC scores
+loadings  <- fit$rotation                        # variables × PCs
+explained <- (fit$sdev^2)/sum(fit$sdev^2)        # variance ratio`}
+          </pre>
+        </div>
+      </SectionCard>
+
+      {/* (d) Results */}
+      <SectionCard title="Results">
+        <p>
+          Report how many PCs you retained and why (e.g., elbow in the scree plot, cumulative
+          explained variance threshold, or model performance downstream). Visualize both the
+          <em> variance explained</em> and the <em>relationships</em> between variables and PCs.
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            <strong>Scree plot</strong>: eigenvalues / variance explained by each PC.
+          </li>
+          <li>
+            <strong>Cumulative variance</strong>: how many PCs reach your target threshold
+            (e.g., 80–95%).
+          </li>
+          <li>
+            <strong>Biplot (PC1–PC2)</strong>: points = observations (scores), arrows =
+            variable loadings—reveals which metrics define each axis and how observations cluster.
+          </li>
+          <li>
+            <strong>Loadings heatmap</strong>: variables × PCs—highlights which stats drive
+            early components (interpretability).
+          </li>
+        </ul>
+
+        {/* 👇 At least two visualizations; include more as desired */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}pca_scree.png`}
+            alt="Scree plot"
+            caption="Figure: Scree plot (drop-off suggests #PCs to keep)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}pca_biplot.png`}
+            alt="Biplot PC1-PC2"
+            caption="Figure: PC1–PC2 biplot (scores + loadings)"
+          />
+        </div>
+
+        <SectionCard title="Visualization Gallery (click thumbnails to expand)">
+          <LightboxGallery items={GALLERY_ITEMS} />
+        </SectionCard>
+
+        {/* 👇 Guidance paragraph you can customize to your dataset */}
+        <p className="mt-2">
+          <em>Interpretation template:</em> PC1 loads positively on offensive efficiency
+          measures (e.g., EFG_O, ADJOE) and negatively on turnover rate, suggesting a
+          “shot quality / ball security” axis. PC2 loads strongly on defensive metrics
+          (e.g., ADJDE, EFG_D), representing a “defensive pressure” axis. Teams in the
+          upper-right of the biplot balance strong offense and defense; lower-right teams
+          skew offense-first; upper-left skew defense-first. This aligns with the styles
+          surfaced in clustering and provides orthogonal summaries for downstream models.
+        </p>
+      </SectionCard>
+
+      {/* (e) Conclusions */}
+      <SectionCard title="Conclusions">
+        <p>
+          Summarize what PCA revealed for your topic. Example talking points:
+        </p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            How many PCs are needed to capture most variance (e.g., first 3 PCs explain ~85%)?
+          </li>
+          <li>
+            What each early PC represents in plain language (offense-first vs defense-first, tempo, shot profile, etc.)?
+          </li>
+          <li>
+            How PCA aided visualization/interpretation and supported your clustering or predictive steps.
+          </li>
+          <li>
+            Any stability checks (e.g., across seasons) and limitations (linear, variance-oriented, sensitive to scaling/outliers).
+          </li>
+          <li>
+            Next steps (robust PCA, sparse PCA, factor analysis, or integrating PCs as features in downstream models).
+          </li>
+        </ul>
+        <p className="mt-2">
+          In short, PCA distilled correlated metrics into a small set of orthogonal components that
+          are easy to visualize and interpret, providing a compact foundation for subsequent
+          clustering and forecasting.
+        </p>
+      </SectionCard>
+    </div>
+  );
+}
+
+
 // Simple outside click hook for dropdown
 function useOutsideClick(ref, handler) {
   useEffect(() => {
@@ -520,9 +976,9 @@ export default function App() {
       case "dataprep_eda":
         return <DataPrepEDA />;
       case "clustering":
-        return <PlaceholderMethod name="Clustering" />;
+        return <ClusteringMethod />;
       case "pca":
-        return <PlaceholderMethod name="PCA" />;
+        return <PCATab />;
       case "naivebayes":
         return <PlaceholderMethod name="Naive Bayes" />;
       case "dectrees":
