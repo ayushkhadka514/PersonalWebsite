@@ -684,10 +684,9 @@ function ClusteringMethod() {
 function PCATab() {
   // 🔧 Replace the filenames below with your actual image assets.
   const GALLERY_ITEMS = [
-    { src: `${import.meta.env.BASE_URL}pca_scree.png`, alt: "Scree plot of eigenvalues", caption: "Scree Plot (Explained Variance by PC)" },
-    { src: `${import.meta.env.BASE_URL}pca_cumvar.png`, alt: "Cumulative explained variance", caption: "Cumulative Explained Variance" },
-    { src: `${import.meta.env.BASE_URL}pca_biplot.png`, alt: "PC1 vs PC2 biplot", caption: "PC1–PC2 Biplot (Scores + Loadings)" },
-    { src: `${import.meta.env.BASE_URL}pca_loadings_heatmap.png`, alt: "Loadings heatmap", caption: "Loadings Heatmap (Variables × PCs)" },
+    { src: `${import.meta.env.BASE_URL}PCA Elbow.png`, alt: "Scree plot of eigenvalues", caption: "Scree Plot (Explained Variance by PC)" },
+    { src: `${import.meta.env.BASE_URL}biplot.png`, alt: "PC1 vs PC2 biplot", caption: "PC1–PC2 Biplot (Scores + Loadings)" },
+    { src: `${import.meta.env.BASE_URL}loadings.png`, alt: "Loadings heatmap", caption: "Loadings Heatmap (Variables × PCs)" },
   ];
 
   return (
@@ -722,12 +721,12 @@ function PCATab() {
         {/* 👇 Drop in two overview figures (or more) */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4">
           <Image
-            src={`${import.meta.env.BASE_URL}pca_geometry.png`}
+            src={`${import.meta.env.BASE_URL}pca.png`}
             alt="Geometric view of PCA projection"
             caption="Geometric intuition: rotate axes to capture maximum variance"
           />
           <Image
-            src={`${import.meta.env.BASE_URL}eigen_explainer.png`}
+            src={`${import.meta.env.BASE_URL}eigen.png`}
             alt="Eigenvalues and eigenvectors concept diagram"
             caption="Eigenvalues (variance explained) and eigenvectors (directions)"
           />
@@ -753,21 +752,16 @@ function PCATab() {
 
         {/* 👇 Show a sample of the data + link to the file */}
         <div className="space-y-2 mt-2">
-          <Image
-            src={`${import.meta.env.BASE_URL}pca_datasample.png`}
-            alt="Sample of the PCA input data matrix"
-            caption="Sample of standardized input data (rows = teams, cols = features)"
-          />
           <p>
             <a
-              href={`${import.meta.env.BASE_URL}pca_input_sample.csv`}
+              href={`${import.meta.env.BASE_URL}pastCBB.csv`}
               className="underline text-blue-600"
             >
               Download sample data (CSV)
             </a>{" "}
             |{" "}
             <a
-              href="https://your-repo-or-drive-link-to-raw-data"
+              href="https://barttorvik.com/trank.php?year=2025#"
               className="underline text-blue-600"
             >
               Raw data source
@@ -778,57 +772,7 @@ function PCATab() {
 
       {/* (c) Code */}
       <SectionCard title="Code">
-        <p>
-          Implement PCA in <strong>Python</strong> (NumPy, pandas, scikit-learn) or{" "}
-          <strong>R</strong> (stats, FactoMineR, prcomp). Below are links to your code artifacts.
-        </p>
-        <p>
-          Python notebook:{" "}
-          <a
-            href={`${import.meta.env.BASE_URL}PCA.ipynb`}
-            className="underline text-blue-600"
-          >
-            PCA.ipynb
-          </a>{" "}
-          | R script:{" "}
-          <a
-            href={`${import.meta.env.BASE_URL}pca.R`}
-            className="underline text-blue-600"
-          >
-            pca.R
-          </a>{" "}
-          | Repository:{" "}
-          <a
-            href="https://github.com/your-username/your-project"
-            className="underline text-blue-600"
-          >
-            GitHub
-          </a>
-        </p>
-
-        {/* (Optional) Tiny reference of the core calls, keep or remove */}
-        <div className="rounded-xl bg-gray-50 p-4 text-sm overflow-x-auto">
-          <p className="font-semibold mb-1">Python (scikit-learn):</p>
-          <pre className="whitespace-pre-wrap">
-{`from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-
-X_std = StandardScaler().fit_transform(X)        # shape: (n_samples, n_features)
-pca   = PCA(n_components=None, svd_solver="full")
-Z     = pca.fit_transform(X_std)                 # scores
-explained = pca.explained_variance_ratio_        # per-PC variance share
-loadings  = pca.components_.T                    # variables × PCs`}
-          </pre>
-
-          <p className="font-semibold mt-3 mb-1">R (prcomp):</p>
-          <pre className="whitespace-pre-wrap">
-{`X_std <- scale(X)                               # center/scale
-fit   <- prcomp(X_std, center = TRUE, scale. = TRUE)
-scores    <- fit$x                               # PC scores
-loadings  <- fit$rotation                        # variables × PCs
-explained <- (fit$sdev^2)/sum(fit$sdev^2)        # variance ratio`}
-          </pre>
-        </div>
+        
       </SectionCard>
 
       {/* (d) Results */}
@@ -860,14 +804,14 @@ explained <- (fit$sdev^2)/sum(fit$sdev^2)        # variance ratio`}
         {/* 👇 At least two visualizations; include more as desired */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-2">
           <Image
-            src={`${import.meta.env.BASE_URL}pca_scree.png`}
+            src={`${import.meta.env.BASE_URL}pca.png`}
             alt="Scree plot"
             caption="Figure: Scree plot (drop-off suggests #PCs to keep)"
           />
           <Image
-            src={`${import.meta.env.BASE_URL}pca_biplot.png`}
+            src={`${import.meta.env.BASE_URL}cumvar.png`}
             alt="Biplot PC1-PC2"
-            caption="Figure: PC1–PC2 biplot (scores + loadings)"
+            caption="Cumulative Variance"
           />
         </div>
 
