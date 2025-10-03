@@ -682,7 +682,7 @@ function ClusteringMethod() {
 }
 
 function PCATab() {
-  // 🔧 Replace the filenames below with your actual image assets.
+  // 🔧 Replace the filenames/links below with your actual assets if different.
   const GALLERY_ITEMS = [
     { src: `${import.meta.env.BASE_URL}PCA Elbow.png`, alt: "Scree plot of eigenvalues", caption: "Scree Plot (Explained Variance by PC)" },
     { src: `${import.meta.env.BASE_URL}biplot.png`, alt: "PC1 vs PC2 biplot", caption: "PC1–PC2 Biplot (Scores + Loadings)" },
@@ -695,40 +695,32 @@ function PCATab() {
       <SectionCard title="PCA Overview">
         <p>
           <strong>Principal Component Analysis (PCA)</strong> is a linear technique for
-          <em> dimensionality reduction</em>: it re-expresses a dataset in terms of new,
-          orthogonal axes (principal components) that capture maximal variance. Each component
-          is a linear combination of the original variables.
+          <em> dimensionality reduction</em>. It rotates the original feature space to new,
+          orthogonal axes (principal components, PCs) that capture maximal variance. Each PC
+          is a weighted combination of the original variables (its <em>loadings</em>).
         </p>
-
         <p>
-          <strong>Eigenvalues</strong> quantify how much variance each principal component (PC)
-          explains, and <strong>eigenvectors</strong> (component loadings) give the direction
-          (weights on original variables) of each PC. If <code>S</code> is the covariance (or
-          correlation) matrix, PCA solves <code>S v = \lambda v</code>, yielding eigenpairs
-          <code>(\lambda, v)</code>. Sorting eigenvalues in descending order ranks the PCs by
-          importance.
+          Let <code>S</code> be the covariance (or correlation) matrix. PCA solves
+          <code> S v = λ v </code> for eigenpairs <code>(λ, v)</code>. The eigenvalue <code>λ</code>
+          equals the variance explained by that PC, and the eigenvector <code>v</code> gives the
+          direction (loadings). Sorting eigenvalues descending ranks PCs by importance.
         </p>
-
         <p>
-          <strong>Why reduce dimensionality?</strong> High-dimensional data can be noisy,
-          redundant, and hard to visualize. PCA mitigates: (i) <em>noise</em> by concentrating
-          signal into the first few PCs, (ii) <em>multicollinearity</em> by forming orthogonal
-          axes, and (iii) <em>visualization</em> by enabling 2D/3D plots of complex datasets.
-          This simplification aids downstream modeling and interpretation—especially when
-          distances and clusters depend on the most informative variation.
+          <strong>Why PCA here?</strong> High-dimensional team metrics are correlated and noisy.
+          PCA (i) concentrates signal into a small set of components, (ii) removes
+          multicollinearity via orthogonal axes, and (iii) enables clear 2D/3D visualization.
+          These properties make distances more meaningful for downstream clustering.
         </p>
-
-        {/* 👇 Drop in two overview figures (or more) */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4 mt-4">
           <Image
             src={`${import.meta.env.BASE_URL}pca.png`}
             alt="Geometric view of PCA projection"
-            caption="Geometric intuition: rotate axes to capture maximum variance"
+            caption="Rotate axes to capture the directions of maximal variance"
           />
           <Image
             src={`${import.meta.env.BASE_URL}eigen.png`}
             alt="Eigenvalues and eigenvectors concept diagram"
-            caption="Eigenvalues (variance explained) and eigenvectors (directions)"
+            caption="Eigenvalues = variance explained; eigenvectors = loading directions"
           />
         </div>
       </SectionCard>
@@ -736,34 +728,23 @@ function PCATab() {
       {/* (b) Data Prep */}
       <SectionCard title="Data Prep">
         <p>
-          PCA expects a <strong>numeric matrix</strong> (rows = observations, columns = features),
-          with <strong>no missing values</strong>. To make variables comparable and prevent scale
-          from dominating, data should be <strong>standardized</strong> (e.g., z-scores). If your
-          variables are on very different scales or measured in different units, using the
-          <strong> correlation matrix</strong> (i.e., standardized PCA) is recommended.
+          PCA expects a <strong>numeric matrix</strong> (rows = observations, columns = features)
+          with <strong>no missing values</strong>. Variables should be on comparable scales.
+          In practice we standardize columns (z-scores) and often use the correlation matrix.
         </p>
-
         <ul className="list-disc pl-6 space-y-1">
-          <li>Only numeric features (drop IDs, labels, text).</li>
-          <li>Impute or remove missing values; verify no constant-variance columns.</li>
-          <li>Standardize columns (mean 0, variance 1) before PCA.</li>
-          <li>Optionally subset to curated features (e.g., efficiency metrics) to focus signal.</li>
+          <li>Keep only numeric features (drop IDs/labels/text).</li>
+          <li>Impute or remove missing values; remove constant-variance columns.</li>
+          <li>Standardize features before computing PCA.</li>
+          <li>Optionally curate features to emphasize signal (e.g., efficiency, shooting, rebounding).</li>
         </ul>
-
-        {/* 👇 Show a sample of the data + link to the file */}
         <div className="space-y-2 mt-2">
           <p>
-            <a
-              href={`${import.meta.env.BASE_URL}pastCBB.csv`}
-              className="underline text-blue-600"
-            >
+            <a href={`${import.meta.env.BASE_URL}pastCBB.csv`} className="underline text-blue-600">
               Download sample data (CSV)
             </a>{" "}
             |{" "}
-            <a
-              href="https://barttorvik.com/trank.php?year=2025#"
-              className="underline text-blue-600"
-            >
+            <a href="https://barttorvik.com/trank.php?year=2025#" className="underline text-blue-600">
               Raw data source
             </a>
           </p>
@@ -773,18 +754,32 @@ function PCATab() {
       {/* (c) Code */}
       <SectionCard title="Code">
         <p>
-          The PCA was self implemented in <strong>Python</strong> using NumPy and pandas. References from 
-          <a href="https://www.geeksforgeeks.org/data-analysis/principal-component-analysis-pca/" target="_blank" rel="noreferrer" className="underline">
-            GeeksforGeeks
-          </a>{" "}
-          
+          Implemented in <strong>Python</strong> with <em>NumPy</em> and <em>pandas</em>;
+          visualizations via <em>matplotlib</em>/<em>seaborn</em>. Workflow:
+        </p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Standardize matrix (fit scaler on historical data; apply consistently to new data).</li>
+          <li>Compute PCA on standardized matrix; extract scores (obs × PCs) and loadings (vars × PCs).</li>
+          <li>Use scree/cumulative variance to choose the number of PCs.</li>
+          <li>Export PC scores for downstream clustering and analysis.</li>
+        </ul>
+        <p className="mt-2">
+          Background reading:&nbsp;
+          <a
+            href="https://www.geeksforgeeks.org/data-analysis/principal-component-analysis-pca/"
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+          >
+            GeeksforGeeks: PCA Overview
+          </a>
         </p>
         <p>
-          Link to the notebook or repository:{" "}
+          Notebook / Repo:&nbsp;
           <a href={`${import.meta.env.BASE_URL}Clustering-PCA.ipynb`} className="underline text-blue-600">
             Clustering-PCA.ipynb
           </a>{" "}
-            |{" "}
+          |{" "}
           <a href="https://github.com/ayushkhadka514/MarchMadness/tree/main/Project" className="underline text-blue-600">
             GitHub Repository
           </a>
@@ -794,90 +789,67 @@ function PCATab() {
       {/* (d) Results */}
       <SectionCard title="Results">
         <p>
-          Report how many PCs you retained and why (e.g., elbow in the scree plot, cumulative
-          explained variance threshold, or model performance downstream). Visualize both the
-          <em> variance explained</em> and the <em>relationships</em> between variables and PCs.
+          We retained <strong>6 principal components</strong>. The cumulative variance curve
+          indicates a clear elbow and surpasses a &gt;90% threshold by 6 PCs—additional
+          components contribute marginal gains.
         </p>
 
-        <ul className="list-disc pl-6 space-y-1">
-          <li>
-            <strong>Scree plot</strong>: eigenvalues / variance explained by each PC.
-          </li>
-          <li>
-            <strong>Cumulative variance</strong>: how many PCs reach your target threshold
-            (e.g., 80–95%).
-          </li>
-          <li>
-            <strong>Biplot (PC1–PC2)</strong>: points = observations (scores), arrows =
-            variable loadings—reveals which metrics define each axis and how observations cluster.
-          </li>
-          <li>
-            <strong>Loadings heatmap</strong>: variables × PCs—highlights which stats drive
-            early components (interpretability).
-          </li>
-        </ul>
-
-        {/* 👇 At least two visualizations; include more as desired */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-2">
-          <Image
-            src={`${import.meta.env.BASE_URL}pca.png`}
-            alt="Scree plot"
-            caption="Figure: Scree plot (drop-off suggests #PCs to keep)"
-          />
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
           <Image
             src={`${import.meta.env.BASE_URL}cumvar.png`}
-            alt="Biplot PC1-PC2"
-            caption="Cumulative Variance"
+            alt="Cumulative variance explained"
+            caption="Cumulative Explained Variance: &gt;90% by 6 PCs, diminishing returns thereafter"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}biplot.png`}
+            alt="PC1 vs PC2 biplot"
+            caption="Biplot: teams (scores) with variable loadings over PC1–PC2"
           />
         </div>
+
+        <p className="mt-3">
+          <strong>Biplot interpretation:</strong> PC1 behaves like a <em>team strength</em> axis—
+          it contrasts higher-efficiency teams (left, aligned with BARTHAG/WAB) against weaker-seeded
+          teams (right, aligned with Seed). PC2 functions as a <em>style</em> axis—positive loadings
+          on 3P%, EFG_O, 2P%, and 3PR highlight perimeter/offensive-shooting orientation near the
+          top, while negative association with DRB pulls rebounding-driven profiles downward. ADJOE
+          and ADJDE load across both axes, indicating combined offense/defense contributions.
+        </p>
 
         <SectionCard title="Visualization Gallery (click thumbnails to expand)">
           <LightboxGallery items={GALLERY_ITEMS} />
         </SectionCard>
-
-        {/* 👇 Guidance paragraph you can customize to your dataset */}
-        <p className="mt-2">
-          <em>Interpretation template:</em> PC1 loads positively on offensive efficiency
-          measures (e.g., EFG_O, ADJOE) and negatively on turnover rate, suggesting a
-          “shot quality / ball security” axis. PC2 loads strongly on defensive metrics
-          (e.g., ADJDE, EFG_D), representing a “defensive pressure” axis. Teams in the
-          upper-right of the biplot balance strong offense and defense; lower-right teams
-          skew offense-first; upper-left skew defense-first. This aligns with the styles
-          surfaced in clustering and provides orthogonal summaries for downstream models.
-        </p>
       </SectionCard>
 
       {/* (e) Conclusions */}
       <SectionCard title="Conclusions">
-        <p>
-          Summarize what PCA revealed for your topic. Example talking points:
-        </p>
         <ul className="list-disc pl-6 space-y-1">
           <li>
-            How many PCs are needed to capture most variance (e.g., first 3 PCs explain ~85%)?
+            The first <strong>six PCs</strong> capture <strong>&gt;90% of variance</strong>,
+            yielding a compact, information-rich representation.
           </li>
           <li>
-            What each early PC represents in plain language (offense-first vs defense-first, tempo, shot profile, etc.)?
+            <strong>PC1 = strength</strong> (efficiency and seed contrast);{" "}
+            <strong>PC2 = style</strong> (shooting/perimeter emphasis vs rebounding/defense).
           </li>
           <li>
-            How PCA aided visualization/interpretation and supported your clustering or predictive steps.
+            The 6D PCA space removes redundancy and stabilizes distances, providing a clean
+            foundation for downstream clustering and postseason profiling.
           </li>
           <li>
-            Any stability checks (e.g., across seasons) and limitations (linear, variance-oriented, sensitive to scaling/outliers).
-          </li>
-          <li>
-            Next steps (robust PCA, sparse PCA, factor analysis, or integrating PCs as features in downstream models).
+            Next steps: check stability across seasons, consider robust/sparse PCA, and feed PC
+            scores into clustering or predictive models.
           </li>
         </ul>
         <p className="mt-2">
-          In short, PCA distilled correlated metrics into a small set of orthogonal components that
-          are easy to visualize and interpret, providing a compact foundation for subsequent
-          clustering and forecasting.
+          In short, PCA distilled correlated team metrics into a small set of orthogonal components
+          that are easy to interpret and highly useful for the clustering stages that follow.
         </p>
       </SectionCard>
     </div>
   );
 }
+
 
 
 // Simple outside click hook for dropdown
