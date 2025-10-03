@@ -772,7 +772,23 @@ function PCATab() {
 
       {/* (c) Code */}
       <SectionCard title="Code">
-        
+        <p>
+          The PCA was self implemented in <strong>Python</strong> using NumPy and pandas. References from 
+          <a href="https://www.geeksforgeeks.org/data-analysis/principal-component-analysis-pca/" target="_blank" rel="noreferrer" className="underline">
+            GeeksforGeeks
+          </a>{" "}
+          
+        </p>
+        <p>
+          Link to the notebook or repository:{" "}
+          <a href={`${import.meta.env.BASE_URL}Clustering-PCA.ipynb`} className="underline text-blue-600">
+            Clustering-PCA.ipynb
+          </a>{" "}
+            |{" "}
+          <a href="https://github.com/ayushkhadka514/MarchMadness/tree/main/Project" className="underline text-blue-600">
+            GitHub Repository
+          </a>
+        </p>
       </SectionCard>
 
       {/* (d) Results */}
