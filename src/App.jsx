@@ -26,7 +26,7 @@ const PROJECT_TABS = [
   { id: "pca", label: "PCA" },
   { id: "naivebayes", label: "NaiveBayes" },
   { id: "dectrees", label: "DecTrees" },
-  { id: "svms", label: "SVMs" },
+  { id: "xgboost", label: "XGBoost" },
   { id: "regression", label: "Regression" },
   { id: "nn", label: "NN" },
 ];
@@ -850,6 +850,454 @@ function PCATab() {
   );
 }
 
+function NaiveBayesTab() {
+  // 🔧 Replace filenames/links with your actual assets & paths.
+  const GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}sample.png`, alt: "Sample of labeled data", caption: "Sample of Labeled Data (features + target)" },
+    { src: `${import.meta.env.BASE_URL}train.png`, alt: "Training set preview", caption: "Training Set Preview (X_train, y_train)" },
+    { src: `${import.meta.env.BASE_URL}test.png`, alt: "Testing set preview", caption: "Testing Set Preview (X_test, y_test)" },
+  ];
+
+  const RESULTS_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}BayesConfusion.png`, alt: "Confusion Matrix", caption: "Confusion Matrix (Predicted vs Actual)" },
+    { src: `${import.meta.env.BASE_URL}bayes_importance.png`, alt: "Accuracy plot", caption: "Feature Importance" },
+    { src: `${import.meta.env.BASE_URL}bayes_result.jpeg`, alt: "Class conditional probabilities", caption: "Predicted bracket from Naive Bayes" },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* (a) Overview */}
+      <SectionCard title="Naïve Bayes Overview">
+  <p>
+    <strong>Naïve Bayes (NB)</strong> is a family of probabilistic classifiers that apply Bayes’ rule
+    with a <em>conditional independence</em> assumption between features given the class. Despite the
+    “naïve” assumption, NB is fast, robust, and often highly competitive on <strong>high-dimensional,
+    sparse data</strong> (e.g., text). In classification form, Bayes’ rule can be written as
+    <code> P(C | x) ∝ P(x | C) · P(C) </code>, and under the naïve assumption
+    <code> P(x | C) = ∏<sub>j=1..d</sub> P(x<sub>j</sub> | C) </code>.
+  </p>
+
+  <div className="grid sm:grid-cols-2 gap-4 mt-4">
+    <Image
+      src={`${import.meta.env.BASE_URL}bayes.jpg`}
+      alt="Bayes rule diagram"
+      caption="Bayes: P(C|x) ∝ P(x|C)·P(C). NB assumes x₁…x_d are conditionally independent given C."
+    />
+    <Image
+      src={`${import.meta.env.BASE_URL}variant.jpg`}
+      alt="NB variants"
+      caption="Common variants: MultinomialNB (counts), BernoulliNB (binary), GaussianNB (continuous)."
+    />
+  </div>
+
+  <p className="mt-3">
+    <strong>What it’s good for:</strong> spam filtering, topic and sentiment classification,
+    document tagging, and quick baselines for wide/tabular data. It’s simple, fast to train/predict,
+    and interpretable via class priors and feature likelihoods.
+  </p>
+
+  <p className="mt-3">
+    <strong>Multinomial Naïve Bayes:</strong> Assumes features are non-negative
+    <em> counts or frequency-like</em> values (e.g., bag-of-words counts, TF, nonnegative TF-IDF).
+    It estimates how often each feature occurs per class. In log-space:
+    <code> log P(C|x) ∝ log P(C) + Σ<sub>j</sub> x<sub>j</sub> · log P(x<sub>j</sub>|C) </code>.
+    Additive smoothing (<code>α</code>) prevents zeros and usually improves accuracy.
+  </p>
+
+  <p className="mt-3">
+    <strong>Bernoulli Naïve Bayes:</strong> Assumes <em>binary</em> features
+    (present/absent). Often created by binarizing counts (e.g., “word appears at least once”).
+    Useful for very short texts or when <em>occurrence matters more than frequency</em>.
+  </p>
+
+  <p className="mt-3">
+    <strong>Strengths:</strong> extremely fast, handles many features well, works with limited data.
+    <strong> Limitations:</strong> independence assumption may be violated; probabilities can be
+    poorly calibrated without post-processing.
+  </p>
+</SectionCard>
+
+
+      {/* (b) Data Prep */}
+      <SectionCard title="Data Prep">
+  <p>
+    To use <strong>Naïve Bayes</strong> you need a clean, labeled dataset and a leak-free
+    preprocessing pipeline. NB is a <strong>supervised</strong> classifier, so each row must have a
+    target class label. You’ll split this labeled data into a <strong>Training Set</strong>
+    (used to fit all preprocessing steps and the model) and a <strong>Testing Set</strong> (held out
+    for final evaluation). These sets must be <em>disjoint</em> to avoid leakage and overfitting.
+  </p>
+
+  <p className="mt-2">
+    <strong>High-level steps we followed</strong> (you can swap in your own assets/links below):
+  </p>
+  <ol className="list-decimal pl-6 space-y-1">
+    <li>
+      <strong>Collect &amp; label:</strong> Assemble rows (documents / examples) with a single
+      ground-truth class per row. Remove obvious duplicates and fix malformed rows.
+    </li>
+    <li>
+      <strong>Train/Test split:</strong> Create an 80/20 (or 70/30) split with{" "}
+      <em>stratification</em> so class proportions are preserved. Set a{" "}
+      <code>random_state</code> for reproducibility.
+    </li>
+    <li>
+      <strong>Fit transforms on <em>train only</em>:</strong> Any preprocessing that learns from
+      the data (e.g., vocabulary, IDF weights, feature selection) must be <em>fit on the
+      training set</em> and then <em>applied to the test set</em>. Never peek at test data when
+      building the vectorizer or selecting features.
+    </li>
+    <li>
+      <strong>Vectorize features:</strong> For text, convert raw text to numeric features:
+      <ul className="list-disc pl-6 mt-1 space-y-1">
+        <li>
+          <em>MultinomialNB</em> (what we use): non-negative <strong>counts</strong> or frequency-like
+          features (e.g., CountVectorizer, TF or non-negative TF-IDF). Keep all values ≥ 0.
+        </li>
+        <li>
+          <em>BernoulliNB</em>: <strong>binary</strong> features (present/absent). Binarize
+          counts with a threshold (e.g., &gt; 0 → 1).
+        </li>
+      </ul>
+    </li>
+    <li>
+      <strong>Text cleaning (if applicable):</strong> normalize case, remove/limit punctuation,
+      optionally remove stopwords, choose n-grams (e.g., unigrams/bigrams), cap vocabulary
+      size, and drop extremely rare tokens to reduce noise.
+    </li>
+    <li>
+      <strong>Handle missing/invalid values:</strong> Drop or impute rows/fields that can’t be
+      vectorized. Ensure the final feature matrix has no NaNs and satisfies each NB variant’s
+      requirements (non-negative for Multinomial, binary for Bernoulli).
+    </li>
+    <li>
+      <strong>Optional feature selection:</strong> Apply chi-square or mutual information
+      (fit on train only) to keep the most informative features and reduce dimensionality.
+    </li>
+    <li>
+      <strong>Class imbalance check:</strong> Inspect label distribution. If heavily imbalanced,
+      consider stratified split (already done), decision thresholds, or reporting per-class
+      metrics in addition to overall accuracy.
+    </li>
+  </ol>
+
+  <ul className="list-disc pl-6 space-y-1 mt-3">
+    <li>
+      <strong>MultinomialNB (sklearn):</strong> features must be non-negative counts / TF / TF-IDF.
+      Do <em>not</em> standardize/center to negative values.
+    </li>
+    <li>
+      <strong>BernoulliNB:</strong> binarize features (e.g., count &gt; 0 → 1) or construct boolean
+      indicators directly.
+    </li>
+    <li>
+      Keep preprocessing steps identical between train and test by using a single pipeline
+      object (vectorizer → selector → classifier) fit on <em>train</em>, then applied to <em>test</em>.
+    </li>
+  </ul>
+
+  <div className="space-y-2 mt-3">
+    <p>
+      {/* 🔗 Replace these with your actual assets/links */}
+      <a href={`${import.meta.env.BASE_URL}newPastCBB.csv`} className="underline text-blue-600">
+        Download sample data (CSV)
+      </a>{" "}
+      |{" "}
+      <a href={`https://www.kaggle.com/competitions/march-machine-learning-mania-2025/overview`} className="underline text-blue-600">
+        Data source
+      </a>
+    </p>
+  </div>
+
+  <SectionCard title="Data Previews">
+    {/* 🖼️ Provide small screenshots: raw labeled sample, train head, test head */}
+    <LightboxGallery items={GALLERY_ITEMS} />
+  </SectionCard>
+
+  <p className="mt-3">
+    <strong>Why this matters:</strong> NB’s assumptions (counts ≥ 0 for Multinomial; binary for
+    Bernoulli) dictate the <em>feature format</em>, and leak-free preprocessing preserves a fair
+    estimate of generalization. With this prep in place, the model’s smoothing (<code>α</code>) and
+    variant choice become meaningful levers rather than fixes for data issues.
+  </p>
+</SectionCard>
+
+
+{/* (c) Code */}
+<SectionCard title="Code">
+  <p>
+    Implemented in <strong>Python</strong> with <em>NumPy</em>, <em>pandas</em>, and <em>scikit-learn</em>; plots via <em>matplotlib</em>. The project uses
+    <strong> Gaussian Naive Bayes</strong> on fully numeric, pairwise features.
+  </p>
+  <ul className="list-disc pl-6 space-y-1">
+    <li>
+      <strong>Dataset build (head-to-head):</strong> From <code>newPastCBB.csv</code>, create game-level rows by joining each team to the opponent
+      using <code>LostTo == Team</code>.
+    </li>
+    <li>
+      <strong>Numeric features only:</strong> For each numeric stat (excluding outcomes like <code>Result</code>), compute
+      differences <code>diff_stat = stat_team − stat_opp</code>. This yields a numeric matrix suitable for Naive Bayes.
+    </li>
+    <li>
+      <strong>Labels:</strong> Original direction (team vs opponent) is a loss → label <code>0</code>. Add a flipped copy (opponent vs team) so the
+      winner appears first → label <code>1</code>.
+    </li>
+    <li>
+      <strong>Preprocessing:</strong> Median imputation with <code>SimpleImputer</code> inside a <code>Pipeline</code> so missing values are handled
+      consistently during CV and inference.
+    </li>
+    <li>
+      <strong>Naive Bayes (NB):</strong> Train <code>GaussianNB</code> on the <code>diff_*</code> features. 
+    </li>
+    <li>
+      <strong>Evaluation:</strong> 5-fold stratified cross-validation for accuracy and an out-of-fold confusion matrix using
+      <code> cross_val_predict</code>.
+    </li>
+    <li>
+      <strong>Visualization:</strong> Confusion matrix (counts), ROC/PR curves from OOF probabilities, and calibration (reliability) plot.
+    </li>
+    <li>
+      <strong>Inference helper:</strong> Website-facing function
+      <code> predict_match_winner_nb(current_df, teamA, teamB, nb_model, features)</code> that returns symmetric probabilities and enforces a 50/50
+      result for same-team comparisons.
+    </li>
+  </ul>
+  <p className="mt-2">
+    Notebook / Code:&nbsp;
+    <a href={`${import.meta.env.BASE_URL}NaiveBayes.ipynb`} className="underline text-blue-600">
+      CBB_HeadToHead_NaiveBayes.ipynb
+    </a>
+    {" "} | {" "}
+    <a href="https://github.com/ayushkhadka514/MarchMadness/tree/main/Project" className="underline text-blue-600">
+      GitHub Repository
+    </a>
+  </p>
+</SectionCard>
+
+
+
+      {/* (d) Results */}
+      <SectionCard title="Results">
+
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}BayesConfusion.png`}
+            alt="Confusion Matrix"
+            caption="Confusion Matrix (rows: actual, columns: predicted)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}scores.png`}
+            alt="Accuracy Summary"
+            caption="Accuracy and (optional) cross-validated accuracy"
+          />
+        </div>
+
+        <SectionCard title="More Visuals (click to expand)">
+          <LightboxGallery items={RESULTS_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Interpretation:</strong> Naive Bayes achieved <em>99.8%</em> accuracy according to ESPN when predicting the 2025 tournament (1730/1920 score). 
+          The confusion matrix shows very few misclassifications, indicating strong performance. Feature importance analysis highlights which predictors most influenced the model's decisions.
+        </p>
+      </SectionCard>
+
+      {/* (e) Conclusions */}
+      <SectionCard title="Conclusions">
+  <ul className="list-disc pl-6 space-y-1">
+    <li>
+      Gaussian Naive Bayes delivered a fast, transparent baseline on the pairwise <code>diff_*</code> features, producing stable, order-invariant
+      head-to-head probabilities after symmetrization.
+    </li>
+    <li>
+      Feature engineering was decisive: constructing numeric differences and removing leaky statistics (e.g., <code>G</code>) reduced label leakage
+      and improved face validity of the signals.
+    </li>
+    <li>
+      Permutation-importance and class-separation analyses highlighted a small set of metrics driving predictions, while error patterns suggested value
+      in adding richer opponent-adjusted stats and season-aware splits.
+    </li>
+    <li>
+      Next steps include probability calibration, smoothing (<code>alpha</code>) tuning, explicit year-based holdouts, and comparisons with calibrated
+      logistic regression or tree-based ensembles for robustness.
+    </li>
+  </ul>
+  <p className="mt-2">
+    Overall, the model can predict <em>game winners in head-to-head college basketball matchups</em> with reasonable fidelity on this representation;
+    further gains are likely from tighter control of leakage, improved calibration, and expanded feature context.
+  </p>
+</SectionCard>
+    </div>
+  );
+}
+
+function DecisionTreesTab() {
+  // 🔧 Replace filenames/links with your actual asset paths.
+  const GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}sample_tree.png`, alt: "Sample of labeled pairwise data", caption: "Sample of Labeled Pairwise Data (features + target)" },
+    { src: `${import.meta.env.BASE_URL}train_tree.png`, alt: "Training set preview", caption: "Training Set Preview (X_train, y_train)" },
+    { src: `${import.meta.env.BASE_URL}test_tree.png`, alt: "Testing set preview", caption: "Testing Set Preview (X_test, y_test)" },
+  ];
+
+  const RESULTS_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}confusion.png`, alt: "Confusion Matrix", caption: "Confusion Matrix (Predicted vs Actual)" },
+    { src: `${import.meta.env.BASE_URL}features.png`, alt: "Feature importance", caption: "Top Gini Feature Importances" },
+    { src: `${import.meta.env.BASE_URL}tree.png`, alt: "Tree visualization", caption: "Decision Tree (first few levels)" },
+    { src: `${import.meta.env.BASE_URL}trees_result.jpeg`, alt: "Tree visualization", caption: "Decision Tree Prediction Bracket" },
+
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* (a) Overview */}
+      <SectionCard title="Decision Trees Overview">
+        <p>
+          <strong>Decision Trees (DTs)</strong> are nonparametric, supervised models that split the feature space with
+          interpretable if–else rules. Internal nodes choose a feature and threshold to reduce class impurity; leaves store
+          predicted class probabilities. DTs capture nonlinearities and interactions, train quickly, and are easy to explain.
+          In <strong>scikit-learn</strong>, inputs must be <em>numeric</em> (categoricals must be encoded or omitted).
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-4 mt-4">
+          <Image
+            src={`${import.meta.env.BASE_URL}decision-tree-template.jpg`}
+            alt="Decision tree schematic"
+            caption="A decision tree recursively partitions the space; each leaf holds a class distribution."
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}gini.png`}
+            alt="Impurity measures"
+            caption="Gini and Entropy quantify node 'mixedness'; splits are chosen to reduce impurity the most."
+          />
+        </div>
+
+        <h4 className="mt-4 font-semibold">What DTs can be used for</h4>
+        <ul className="list-disc pl-6 space-y-1">
+          <li><strong>Classification:</strong> predict discrete labels (e.g., matchup winner).</li>
+          <li><strong>Regression:</strong> predict continuous targets (e.g., margin).</li>
+          <li><strong>Feature insight:</strong> importances and rules highlight which variables matter.</li>
+          <li><strong>Rule extraction:</strong> convert paths root→leaf to human-readable policies.</li>
+        </ul>
+
+        <h4 className="mt-4 font-semibold">Gini, Entropy, and Information Gain</h4>
+        <p className="mt-1">
+          Trees select splits that <em>reduce impurity</em>:
+        </p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li><strong>Gini (CART):</strong> <code>Gini = 1 - \u2211_k p_k^2</code> (lower = purer).</li>
+          <li><strong>Entropy (ID3/C4.5):</strong> <code>H = -\u2211_k p_k \u22c5 log2 p_k</code> (higher = more uncertain).</li>
+          <li><strong>Information Gain:</strong> impurity reduction after a split. For entropy,
+            <code> IG = H(parent) - \u2211_i w_i H(child_i)</code>, with <code>w_i</code> = fraction to child <code>i</code>.
+          </li>
+        </ul>
+
+        <h4 className="mt-4 font-semibold">Mini example (Entropy &amp; Gini)</h4>
+        <div className="bg-neutral-50 rounded-lg p-3 text-sm overflow-x-auto">
+          <pre className="whitespace-pre-wrap">
+{`Parent: 10 samples → 6 positive, 4 negative
+Entropy(parent) = -(0.6 log2 0.6 + 0.4 log2 0.4) ≈ 0.97095
+Gini(parent)    = 1 - (0.6^2 + 0.4^2) = 0.48
+
+Split X → Left (5): 4+,1-  | Right (5): 2+,3-
+Entropy(left)=0.72193, Entropy(right)=0.97095
+Weighted entropy = 0.5·0.72193 + 0.5·0.97095 = 0.84644
+Information Gain = 0.97095 - 0.84644 = 0.12451 bits
+
+Gini(left)=0.32, Gini(right)=0.48
+Weighted Gini = 0.5·0.32 + 0.5·0.48 = 0.40
+Gini decrease = 0.48 - 0.40 = 0.08`}
+          </pre>
+        </div>
+
+        <h4 className="mt-4 font-semibold">Why there are (practically) infinite trees</h4>
+        <ul className="list-disc pl-6 space-y-1">
+          <li><strong>Continuous thresholds:</strong> myriad valid split points on real-valued features.</li>
+          <li><strong>Hyperparameters:</strong> depth/leaf-size/criterion/pruning change structure.</li>
+          <li><strong>Stochasticity:</strong> bootstrapping &amp; feature subsampling (RF) produce alternative trees.</li>
+          <li><strong>Tie-breaks:</strong> near-equal impurity reductions lead to different choices across runs.</li>
+        </ul>
+        <p className="mt-2">
+          Ensembles (Random Forests, Gradient Boosting) leverage this diversity by averaging many trees for stability and accuracy.
+        </p>
+      </SectionCard>
+
+      {/* (b) Data Prep */}
+      <SectionCard title="Data Prep">
+        <p>
+          We train on <strong>pairwise head-to-head</strong> rows from <code>newPastCBB.csv</code>. Each row joins a team to its opponent
+          via <code>LostTo == Team</code>. For every numeric stat (excluding outcomes like <code>Result</code>), we compute
+          <code> diff_stat = stat_team − stat_opp</code>. The loser-first direction is labeled <code>0</code>; a flipped copy (winner-first) is
+          labeled <code>1</code>. We optionally drop leaky stats (e.g., <code>G</code>, <code>W</code>, <code>Win%</code>).
+        </p>
+
+        <SectionCard title="Data Previews" className="mt-3">
+          <LightboxGallery items={GALLERY_ITEMS} />
+        </SectionCard>
+      </SectionCard>
+
+      {/* (c) Code */}
+      <SectionCard title="Code">
+        <p>
+          Implemented in <strong>Python</strong> with <em>NumPy</em>, <em>pandas</em>, and <em>scikit-learn</em>; plots via <em>matplotlib</em>.
+          We impute missing values and fit a <code>DecisionTreeClassifier</code> inside a single <code>Pipeline</code>. Below also computes an
+          out-of-fold confusion matrix.
+        </p>
+        
+        <p className="mt-2">
+          Notebook / Code:&nbsp;
+          <a href={`${import.meta.env.BASE_URL}CBB_HeadToHead_SymmetricStable.ipynb`} className="underline text-blue-600">
+            CBB_HeadToHead_SymmetricStable.ipynb
+          </a>{" "}
+          |{" "}
+          <a href="https://github.com/ayushkhadka514/MarchMadness/tree/main/Project" className="underline text-blue-600">
+            GitHub Repository
+          </a>
+        </p>
+      </SectionCard>
+
+      {/* (d) Results */}
+      <SectionCard title="Results">
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}confusion.png`}
+            alt="Confusion Matrix"
+            caption="Confusion Matrix (rows: actual, columns: predicted)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}tree_score.png`}
+            alt="Accuracy Summary"
+            caption="Cross-validated accuracy summary (5-fold)"
+          />
+        </div>
+
+        <SectionCard title="More Visuals (click to expand)">
+          <LightboxGallery items={RESULTS_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Interpretation:</strong> The tree yields transparent rules; Gini importances highlight which <code>diff_*</code>
+          features drive splits. If overfitting appears (high train, lower CV), reduce <code>max_depth</code>, increase
+          <code> min_samples_leaf</code>, or consider ensembles for stability.
+        </p>
+      </SectionCard>
+
+      {/* (e) Conclusions */}
+      <SectionCard title="Conclusions">
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Decision Trees provide an interpretable baseline on pairwise features with quick training and inference.</li>
+          <li>Feature engineering (differences, leakage control) strongly affects split quality and generalization.</li>
+          <li>CV diagnostics and importances guide targeted improvements to features and regularization.</li>
+          <li>Next: tune depth/leaf size, calibrate probabilities, and compare with calibrated logistic regression and ensembles.</li>
+        </ul>
+        <p className="mt-2">
+          Overall, DTs can predict <em>head-to-head winners</em> with transparent decision paths; careful regularization and richer features
+          further improve robustness and calibration.
+        </p>
+      </SectionCard>
+    </div>
+  );
+}
+
 
 
 // Simple outside click hook for dropdown
@@ -912,11 +1360,11 @@ export default function App() {
       case "pca":
         return <PCATab />;
       case "naivebayes":
-        return <PlaceholderMethod name="Naive Bayes" />;
+        return <NaiveBayesTab/>;
       case "dectrees":
-        return <PlaceholderMethod name="Decision Trees" />;
-      case "svms":
-        return <PlaceholderMethod name="SVMs" />;
+        return <DecisionTreesTab/>;
+      case "xgboost":
+        return <PlaceholderMethod name="XGBoost" />;
       case "regression":
         return <PlaceholderMethod name="Regression" />;
       case "nn":
