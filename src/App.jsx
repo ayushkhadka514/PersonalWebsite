@@ -1131,6 +1131,376 @@ function NaiveBayesTab() {
   );
 }
 
+function XGBoostTab() {
+  // 🔧 Replace filenames/links with your actual assets & paths.
+  const GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}clean_data.png`, alt: "Sample of labeled data", caption: "Sample of Labeled Data (features + target)" },
+    { src: `${import.meta.env.BASE_URL}train_tree.png`, alt: "Training set preview", caption: "Training Set Preview (X_train, y_train)" },
+    { src: `${import.meta.env.BASE_URL}test_tree.png`, alt: "Testing set preview", caption: "Testing Set Preview (X_test, y_test)" },
+  ];
+
+  const RESULTS_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}h2hconfusion.png`, alt: "Confusion Matrix", caption: "Confusion Matrix (Predicted vs Actual)" },
+    { src: `${import.meta.env.BASE_URL}h2hfeatures.png`, alt: "Feature importance", caption: "Feature Importance from XGBoost" },
+    { src: `${import.meta.env.BASE_URL}h2haccuracy.png`, alt: "Accuracy Scores", caption: "Accuracy across learning rates / estimators / depths" },
+    { src: `${import.meta.env.BASE_URL}bracketboost.jpg`, alt: "Accuracy Scores", caption: "Predicted bracket from XGBoost model" },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* (a) Overview */}
+      <SectionCard title="Boosting & XGBoost Overview">
+        <p>
+          <strong>Boosting</strong> is an ensemble technique that builds a strong classifier by
+          combining many <em>weak learners</em>—typically shallow decision trees—that perform only
+          slightly better than random guessing on their own. The core idea is to train these weak
+          learners <em>sequentially</em>, where each new model focuses on examples that previous
+          models struggled with.
+        </p>
+
+        <p className="mt-3">
+  In general, boosting can be viewed as iteratively minimizing a loss function. At step{" "}
+  <code>t</code>, we add a new weak learner{" "}
+  <code>h<sub>t</sub>(x)</code> with weight{" "}
+  <code>η<sub>t</sub></code> to form an updated ensemble:{" "}
+  <code>
+    F<sub>t</sub>(x) = F<sub>t-1</sub>(x) + η<sub>t</sub> · h<sub>t</sub>(x)
+  </code>
+  . The ensemble prediction comes from{" "}
+  <code>F<sub>T</sub>(x)</code> after <code>T</code> rounds. Different boosting
+  algorithms differ in how they define the loss, how they weight samples, and how they
+  update the model.
+</p>
+
+
+        <div className="grid sm:grid-cols-2 gap-4 mt-4">
+          <Image
+            src={`${import.meta.env.BASE_URL}weaklearners.png`}
+            alt="Weak vs strong learners"
+            caption="Many weak trees (slightly better than random) combine into a strong predictor."
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}xgboost.png`}
+            alt="Residual updates in boosting"
+            caption="XGBoost"
+          />
+        </div>
+
+        <p className="mt-3">
+          <strong>AdaBoost:</strong> Reweights training examples at each round. Misclassified points
+          get higher weight so the next weak learner focuses on them. The final model is a weighted
+          majority vote of all trees. It works well with clean, low-noise data and shallow trees
+          (decision stumps).
+        </p>
+
+        <p className="mt-3">
+          <strong>Gradient Boosting:</strong> Views boosting as gradient descent in function space.
+          Each new tree fits the <em>negative gradient</em> of the loss (often residuals) w.r.t. the
+          current ensemble. This generalizes boosting to many loss functions (squared error,
+          logistic loss, etc.) and supports both regression and classification.
+        </p>
+
+        <p className="mt-3">
+          <strong>XGBoost (Extreme Gradient Boosting):</strong> A highly optimized, regularized
+          version of gradient boosting. It adds:
+        </p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            <strong>Regularization</strong> on tree complexity (L1/L2 on leaf weights) to combat
+            overfitting.
+          </li>
+          <li>
+            <strong>Efficient tree building</strong> (histogram-based splits, sparsity-aware
+            algorithms, column subsampling).
+          </li>
+          <li>
+            <strong>Handling of missing values</strong> via learned “default” directions in splits.
+          </li>
+          <li>
+            Native support for parallelization and out-of-core training.
+          </li>
+        </ul>
+
+        <p className="mt-3">
+          Key hyperparameters across boosting methods:
+        </p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            <strong>Learning rate (η / <code>learning_rate</code>):</strong> Scales the contribution
+            of each tree. Smaller values usually improve generalization but require more trees.
+          </li>
+          <li>
+            <strong>Number of estimators (<code>n_estimators</code>):</strong> How many trees in the
+            ensemble. Too few → underfitting; too many → potential overfitting without proper
+            regularization.
+          </li>
+          <li>
+            <strong>Tree depth (<code>max_depth</code>):</strong> Controls the complexity of each
+            weak learner. Shallow trees (depth 2–4) are common for boosting.
+          </li>
+          <li>
+            <strong>Subsampling (<code>subsample</code>, <code>colsample_bytree</code>):</strong>{" "}
+            Randomly subsample rows/columns per tree to reduce variance and overfitting.
+          </li>
+        </ul>
+
+        <p className="mt-3">
+          <strong>Big picture:</strong> boosting methods iteratively reduce <em>bias</em> by fitting
+          better to the data at each step, while careful regularization and subsampling help control
+          <em> variance</em> and overfitting. XGBoost wraps these ideas into a fast, robust package
+          well-suited for tabular data like our basketball features.
+        </p>
+      </SectionCard>
+
+      {/* (b) Data Prep */}
+      <SectionCard title="Data Preparation">
+        <p>
+          Boosting methods are <strong>supervised</strong> learning algorithms: they require a
+          labeled dataset with clear input features <code>X</code> and a target variable{" "}
+          <code>y</code>. In this project, we work with a college basketball dataset of team-season
+          statistics and transform it into <strong>head-to-head matchups</strong> so XGBoost can
+          directly learn to predict the winner of a specific game.
+        </p>
+
+        <p className="mt-2">
+          <strong>Dataset selection:</strong> We start from a season-level dataset containing one row
+          per team per season (e.g., efficiency metrics, shooting percentages, seed, etc.). Using a
+          column like <code>LostTo</code>, we construct game-level examples where each row represents
+          a matchup between two teams.
+        </p>
+
+        <ol className="list-decimal pl-6 space-y-1 mt-2">
+          <li>
+            <strong>Identify the target:</strong> For each matchup, we define the label as{" "}
+            <code>y = 1</code> if the <em>first</em> team in the pair wins and <code>y = 0</code> if
+            it loses. This gives a clean binary classification target.
+          </li>
+          <li>
+            <strong>Create features:</strong> For each numeric stat (e.g., <code>ADJOE</code>,{" "}
+            <code>ADJDE</code>, <code>EFG_O</code>, <code>Seed</code>), we construct{" "}
+            <code>diff_stat = stat_team − stat_opp</code>. The model then learns how score
+            differentials in these metrics relate to win probability.
+          </li>
+          <li>
+            <strong>Train/Test split:</strong> We perform a stratified split (e.g., 80/20) into a{" "}
+            <strong>Training Set</strong> and <strong>Testing Set</strong>, making sure they are
+            disjoint. The model and all learned preprocessing (like imputers) are fitted on{" "}
+            <em>training data only</em> and then evaluated on the held-out test data.
+          </li>
+          <li>
+            <strong>Handling missing values:</strong> We use a simple strategy (e.g., median
+            imputation) to fill missing numeric values, implemented inside a{" "}
+            <code>Pipeline</code> so that cross-validation and inference stay consistent.
+          </li>
+          <li>
+            <strong>Encoding & scaling:</strong> In this tab, we primarily work with numeric stats,
+            so no one-hot encoding is required. For general tabular data, categorical features would
+            be one-hot encoded and all features passed as a numeric matrix to XGBoost.
+          </li>
+        </ol>
+
+        <p className="mt-3">
+          {/* 🔗 Replace these with your actual assets/links */}
+          <a
+            href={`${import.meta.env.BASE_URL}newPastCBB.csv`}
+            className="underline text-blue-600"
+          >
+            Download sample dataset (CSV)
+          </a>{" "}
+          |{" "}
+          <a
+            href="https://barttorvik.com/trank.php?year=2025#"
+            className="underline text-blue-600"
+          >
+            Original data source
+          </a>
+        </p>
+
+        <SectionCard title="Data Previews">
+          {/* 🖼️ Provide small screenshots: raw labeled sample, train head, test head */}
+          <LightboxGallery items={GALLERY_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Why it matters:</strong> Boosting is powerful but sensitive to data leakage and
+          feature quality. Carefully defining the target, building matchup-level features, and
+          keeping train/test preprocessing leak-free ensures that the reported performance reflects
+          how the model will behave on truly unseen games.
+        </p>
+      </SectionCard>
+
+      {/* (c) Code */}
+      <SectionCard title="Code">
+        <p>
+          The model is implemented in <strong>Python</strong> using <em>NumPy</em>,{" "}
+          <em>pandas</em>, and <em>xgboost</em>, with visualization via <em>matplotlib</em>. We use
+          <strong> XGBoost</strong> as our main boosting method, applied to the numeric{" "}
+          <code>diff_*</code> matchup features.
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1 mt-2">
+          <li>
+            <strong>Matchup construction:</strong> Starting from team-season rows, we join each team
+            to its tournament opponent using a column like <code>LostTo</code>. For each game, we
+            create a pair of examples:
+            <ul className="list-disc pl-6 mt-1 space-y-1">
+              <li>
+                <code>(team − opp, y = 0)</code> for the direction where the listed team lost.
+              </li>
+              <li>
+                <code>(opp − team, y = 1)</code> for the flipped direction where the winner appears
+                first.
+              </li>
+            </ul>
+          </li>
+          <li>
+            <strong>Features:</strong> Only numeric, game-agnostic stats (e.g.,{" "}
+            <code>ADJOE</code>, <code>ADJDE</code>, <code>BARTHAG</code>, shooting percentages,
+            tempo) are used. Outcome-like fields (such as final tournament result) are excluded to
+            avoid label leakage.
+          </li>
+          <li>
+            <strong>Pipeline:</strong> A <code>Pipeline</code> wraps a{" "}
+            <code>SimpleImputer(strategy="median")</code> followed by an{" "}
+            <code>XGBClassifier</code>. This keeps preprocessing and model training tightly coupled
+            and safe to use in cross-validation.
+          </li>
+          <li>
+            <strong>Model configuration (classification):</strong>{" "}
+            <code>XGBClassifier</code> with a logistic objective for binary classification, e.g.:
+            <pre className="mt-1 bg-slate-900 text-slate-100 p-2 rounded text-xs overflow-x-auto">
+{`xgb_model = XGBClassifier(
+    n_estimators=200,
+    max_depth=4,
+    learning_rate=0.05,
+    subsample=0.9,
+    colsample_bytree=0.9,
+    objective="binary:logistic",
+    eval_metric="logloss",
+    tree_method="hist",
+    random_state=42,
+)`}
+            </pre>
+          </li>
+          <li>
+            <strong>Order-invariant prediction:</strong> At inference time, we evaluate the model on{" "}
+            <code>(teamA − teamB)</code> and <code>(teamB − teamA)</code>, then combine the two
+            probabilities so the final win probability is symmetric and does not depend on the input
+            order.
+          </li>
+          <li>
+            <strong>Validation:</strong> We use a held-out test set and, optionally, cross-validation
+            to estimate performance across different hyperparameter settings (learning rate, number
+            of estimators, max depth, subsampling).
+          </li>
+        </ul>
+
+        <p className="mt-2">
+          Notebook / Code:{" "}
+          {/* 🔗 Replace these with your actual notebook / repo links */}
+          <a
+            href={`${import.meta.env.BASE_URL}XGBoostHeadToHead.ipynb`}
+            className="underline text-blue-600"
+          >
+            CBB_HeadToHead_XGBoost.ipynb
+          </a>{" "}
+          |{" "}
+          <a
+            href="https://github.com/ayushkhadka514/MarchMadness"
+            className="underline text-blue-600"
+          >
+            GitHub Repository
+          </a>
+        </p>
+      </SectionCard>
+
+      {/* (d) Results */}
+      <SectionCard title="Results">
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}boostconfusion.png`}
+            alt="Confusion Matrix"
+            caption="Confusion Matrix (rows: actual, columns: predicted)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}boostfeature.png`}
+            alt="Feature importance bar chart"
+            caption="Feature importance from the trained XGBoost model"
+          />
+        </div>
+
+        <SectionCard title="More Visuals (click to expand)">
+          <LightboxGallery items={RESULTS_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Performance summary:</strong> XGBoost achieves strong accuracy on the held-out test
+          set for predicting game winners. The confusion matrix shows that the model correctly
+          classifies most matchups, with relatively few false positives/negatives. By sweeping over
+          hyperparameters such as <code>learning_rate</code>, <code>n_estimators</code>, and{" "}
+          <code>max_depth</code>, we can observe the trade-off between bias and variance:
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            Smaller <code>learning_rate</code> and more trees often yield smoother, more robust
+            predictions.
+          </li>
+          <li>
+            Deeper trees can capture more complex interactions between stats but may overfit if not
+            regularized.
+          </li>
+          <li>
+            Subsampling rows and columns (<code>subsample</code>, <code>colsample_bytree</code>)
+            tends to improve generalization by injecting randomness.
+          </li>
+        </ul>
+
+        <p className="mt-3">
+          <strong>Feature importance:</strong> The importance plot highlights which metrics (e.g.,
+          offensive efficiency, defensive efficiency, shooting percentages, tempo, seed) contribute
+          most to the model’s decisions. In practice, a small subset of features often dominates the
+          predictive signal, revealing which aspects of a team’s profile matter most in head-to-head
+          games.
+        </p>
+      </SectionCard>
+
+      {/* (e) Conclusions */}
+      <SectionCard title="Conclusions">
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            <strong>Boosting impact:</strong> XGBoost substantially improves predictive performance
+            over simple baselines by aggregating many shallow trees and focusing successive trees on
+            the “hard” matchups.
+          </li>
+          <li>
+            <strong>Hyperparameters matter:</strong> Learning rate, number of estimators, and tree
+            depth strongly influence both accuracy and overfitting. Careful tuning (and early
+            stopping) is crucial for getting the most out of the model.
+          </li>
+          <li>
+            <strong>Interpretability:</strong> Feature importance scores and partial error patterns
+            reveal which statistics are driving win probabilities, providing basketball-relevant
+            insights beyond raw accuracy numbers.
+          </li>
+          <li>
+            <strong>Future work:</strong> Possible extensions include adding more contextual
+            features (e.g., recency effects, injuries, home/away adjustments), calibrating output
+            probabilities, and comparing XGBoost to calibrated logistic regression, Random Forests,
+            or deep learning approaches.
+          </li>
+        </ul>
+
+        <p className="mt-2">
+          Overall, XGBoost provides a flexible, high-performing framework for modeling{" "}
+          <em>head-to-head college basketball matchups</em>, turning team-level season stats into
+          accurate game-level predictions while remaining reasonably interpretable and tunable.
+        </p>
+      </SectionCard>
+    </div>
+  );
+}
+
 function DecisionTreesTab() {
   // 🔧 Replace filenames/links with your actual asset paths.
   const GALLERY_ITEMS = [
@@ -1364,7 +1734,7 @@ export default function App() {
       case "dectrees":
         return <DecisionTreesTab/>;
       case "xgboost":
-        return <PlaceholderMethod name="XGBoost" />;
+        return <XGBoostTab/>;
       case "regression":
         return <PlaceholderMethod name="Regression" />;
       case "nn":
