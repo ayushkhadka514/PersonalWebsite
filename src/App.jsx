@@ -27,8 +27,7 @@ const PROJECT_TABS = [
   { id: "naivebayes", label: "NaiveBayes" },
   { id: "dectrees", label: "DecTrees" },
   { id: "xgboost", label: "XGBoost" },
-  { id: "regression", label: "Regression" },
-  { id: "nn", label: "NN" },
+  { id: "results", label: "Results" },
 ];
 
 function TabButton({ id, label, active, onClick }) {
@@ -342,19 +341,6 @@ function IntroContent() {
   );
 }
 
-function ConclusionsContent() {
-  return (
-    <div className="space-y-6">
-      <SectionCard title="Conclusions (Non-Technical)">
-        <p>Work in progress...</p>
-      </SectionCard>
-      <div className="grid md:grid-cols-2 gap-6">
-        <Image src="https://placehold.co/800x450" alt="Conclusion visual 1" caption="Conclusion visual 1" />
-        <Image src="https://placehold.co/800x450" alt="Conclusion visual 2" caption="Conclusion visual 2" />
-      </div>
-    </div>
-  );
-}
 
 function PlaceholderMethod({ name }) {
   return (
@@ -1668,6 +1654,478 @@ Gini decrease = 0.48 - 0.40 = 0.08`}
   );
 }
 
+function ResultsTab() {
+  const TREES_RESULTS_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}confusion.png`, alt: "Confusion Matrix", caption: "Confusion Matrix (Predicted vs Actual)" },
+    { src: `${import.meta.env.BASE_URL}features.png`, alt: "Feature importance", caption: "Top Gini Feature Importances" },
+    { src: `${import.meta.env.BASE_URL}tree.png`, alt: "Tree visualization", caption: "Decision Tree (first few levels)" },
+    { src: `${import.meta.env.BASE_URL}trees_result.jpeg`, alt: "Tree visualization", caption: "Decision Tree Prediction Bracket" },
+
+  ];
+  const XGBOOST_RESULTS_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}h2hconfusion.png`, alt: "Confusion Matrix", caption: "Confusion Matrix (Predicted vs Actual)" },
+    { src: `${import.meta.env.BASE_URL}h2hfeatures.png`, alt: "Feature importance", caption: "Feature Importance from XGBoost" },
+    { src: `${import.meta.env.BASE_URL}h2haccuracy.png`, alt: "Accuracy Scores", caption: "Accuracy across learning rates / estimators / depths" },
+    { src: `${import.meta.env.BASE_URL}bracketboost.jpg`, alt: "Accuracy Scores", caption: "Predicted bracket from XGBoost model" },
+  ];
+
+  const NAIVE_BAYES_RESULTS_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}BayesConfusion.png`, alt: "Confusion Matrix", caption: "Confusion Matrix (Predicted vs Actual)" },
+    { src: `${import.meta.env.BASE_URL}bayes_importance.png`, alt: "Accuracy plot", caption: "Feature Importance" },
+    { src: `${import.meta.env.BASE_URL}bayes_result.jpeg`, alt: "Class conditional probabilities", caption: "Predicted bracket from Naive Bayes" },
+  ];
+
+  const CLUSTERING_GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}hclust.png`, alt: "Seed distribution histogram", caption: "Hierarchical Clustering Analysis" },
+    { src: `${import.meta.env.BASE_URL}k elbow.png`, alt: "Win% by seed boxplot", caption: "AElbow Plot for Optimal K" },
+    { src: `${import.meta.env.BASE_URL}k result.png`, alt: "AdjO vs AdjD scatter", caption: "K= 8 Means Analysis" },
+    { src: `${import.meta.env.BASE_URL}Silhouette.png`, alt: "Pace histogram", caption: "Silhouette plot for optimal K" },
+    { src: `${import.meta.env.BASE_URL}kmeans.png`, alt: "3PT% bar chart", caption: "K=8 Means Clustering with 2PCA" },
+    { src: `${import.meta.env.BASE_URL}dendrogram.png`, alt: "Conference strength heatmap", caption: "Hierarchical Clustering Dendrogram" },
+    { src: `${import.meta.env.BASE_URL}k=5.png`, alt: "Conference strength heatmap", caption: "K=5 Cluster" },
+    { src: `${import.meta.env.BASE_URL}k=6.png`, alt: "Conference strength heatmap", caption: "k=6 Cluster" },
+
+  ];
+
+  const PCA_GALLERY_ITEMS = [
+    { src: `${import.meta.env.BASE_URL}PCA Elbow.png`, alt: "Scree plot of eigenvalues", caption: "Scree Plot (Explained Variance by PC)" },
+    { src: `${import.meta.env.BASE_URL}biplot.png`, alt: "PC1 vs PC2 biplot", caption: "PC1–PC2 Biplot (Scores + Loadings)" },
+    { src: `${import.meta.env.BASE_URL}loadings.png`, alt: "Loadings heatmap", caption: "Loadings Heatmap (Variables × PCs)" },
+  ];
+  return (
+    <div className="space-y-8">
+      <SectionCard title="Decision Trees Results">
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <p>
+
+          </p>
+          <Image
+            src={`${import.meta.env.BASE_URL}confusion.png`}
+            alt="Confusion Matrix"
+            caption="Confusion Matrix (rows: actual, columns: predicted)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}tree_score.png`}
+            alt="Accuracy Summary"
+            caption="Cross-validated accuracy summary (5-fold)"
+          />
+        </div>
+
+        <SectionCard title="More Visuals (click to expand)">
+          <LightboxGallery items={TREES_RESULTS_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Interpretation:</strong> The tree yields transparent rules; Gini importances highlight which <code>diff_*</code>
+          features drive splits. If overfitting appears (high train, lower CV), reduce <code>max_depth</code>, increase
+          <code> min_samples_leaf</code>, or consider ensembles for stability.
+        </p>
+      </SectionCard>
+      <SectionCard title="XGBoost Results">
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}boostconfusion.png`}
+            alt="Confusion Matrix"
+            caption="Confusion Matrix (rows: actual, columns: predicted)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}boostfeature.png`}
+            alt="Feature importance bar chart"
+            caption="Feature importance from the trained XGBoost model"
+          />
+        </div>
+
+        <SectionCard title="More Visuals (click to expand)">
+          <LightboxGallery items={XGBOOST_RESULTS_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Performance summary:</strong> XGBoost achieves strong accuracy on the held-out test
+          set for predicting game winners. The confusion matrix shows that the model correctly
+          classifies most matchups, with relatively few false positives/negatives. By sweeping over
+          hyperparameters such as <code>learning_rate</code>, <code>n_estimators</code>, and{" "}
+          <code>max_depth</code>, we can observe the trade-off between bias and variance:
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            Smaller <code>learning_rate</code> and more trees often yield smoother, more robust
+            predictions.
+          </li>
+          <li>
+            Deeper trees can capture more complex interactions between stats but may overfit if not
+            regularized.
+          </li>
+          <li>
+            Subsampling rows and columns (<code>subsample</code>, <code>colsample_bytree</code>)
+            tends to improve generalization by injecting randomness.
+          </li>
+        </ul>
+
+        <p className="mt-3">
+          <strong>Feature importance:</strong> The importance plot highlights which metrics (e.g.,
+          offensive efficiency, defensive efficiency, shooting percentages, tempo, seed) contribute
+          most to the model’s decisions. In practice, a small subset of features often dominates the
+          predictive signal, revealing which aspects of a team’s profile matter most in head-to-head
+          games.
+        </p>
+      </SectionCard>
+
+      <SectionCard title="Naive Bayes Results">
+
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}BayesConfusion.png`}
+            alt="Confusion Matrix"
+            caption="Confusion Matrix (rows: actual, columns: predicted)"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}scores.png`}
+            alt="Accuracy Summary"
+            caption="Accuracy and (optional) cross-validated accuracy"
+          />
+        </div>
+
+        <SectionCard title="More Visuals (click to expand)">
+          <LightboxGallery items={NAIVE_BAYES_RESULTS_ITEMS} />
+        </SectionCard>
+
+        <p className="mt-3">
+          <strong>Interpretation:</strong> Naive Bayes achieved <em>99.8%</em> accuracy according to ESPN when predicting the 2025 tournament (1730/1920 score). 
+          The confusion matrix shows very few misclassifications, indicating strong performance. Feature importance analysis highlights which predictors most influenced the model's decisions.
+        </p>
+      </SectionCard>
+
+      <SectionCard title="Clustering Results">
+        <p>
+          Result wise, both methods of clustering were very similar. They were both able to produce clusters based on the past data, separating teams 
+          into different archetypes. In my personal opinion, I found K-Means to be easier to undersand and analyze thought due to the cluster
+          graphs being easier to read in comparision to the dendrogram. Both methods suggested around k=6 clusters, which gave me confidence in this number, however; 
+          I did try othe rk values as well. I think that the clusters are good to use to see how far a team can go in the tournament
+          based on how similar teams in their cluster have done in the past. The main drawback with these clustering methods is that they assign the current data directly to a cluster
+          without accounting for uncertainty. A probabilistic clustering method, like Gaussian Mixture Models, could provide a more nuanced view by estimating the likelihood of cluster membership.
+          In future work, I would like to explore this approach to better capture the uncertainty inherent in team performance and style.
+        </p>
+        <SectionCard title="Visualization Gallery (click thumbnails to expand)">
+          <LightboxGallery items={CLUSTERING_GALLERY_ITEMS} />
+        </SectionCard>
+      </SectionCard>
+
+      <SectionCard title="PCA Results">
+        <p>
+          We retained <strong>6 principal components</strong>. The cumulative variance curve
+          indicates a clear elbow and surpasses a &gt;90% threshold by 6 PCs—additional
+          components contribute marginal gains.
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <Image
+            src={`${import.meta.env.BASE_URL}cumvar.png`}
+            alt="Cumulative variance explained"
+            caption="Cumulative Explained Variance: &gt;90% by 6 PCs, diminishing returns thereafter"
+          />
+          <Image
+            src={`${import.meta.env.BASE_URL}biplot.png`}
+            alt="PC1 vs PC2 biplot"
+            caption="Biplot: teams (scores) with variable loadings over PC1–PC2"
+          />
+        </div>
+
+        <p className="mt-3">
+          <strong>Biplot interpretation:</strong> PC1 behaves like a <em>team strength</em> axis—
+          it contrasts higher-efficiency teams (left, aligned with BARTHAG/WAB) against weaker-seeded
+          teams (right, aligned with Seed). PC2 functions as a <em>style</em> axis—positive loadings
+          on 3P%, EFG_O, 2P%, and 3PR highlight perimeter/offensive-shooting orientation near the
+          top, while negative association with DRB pulls rebounding-driven profiles downward. ADJOE
+          and ADJDE load across both axes, indicating combined offense/defense contributions.
+        </p>
+
+        <SectionCard title="Visualization Gallery (click thumbnails to expand)">
+          <LightboxGallery items={PCA_GALLERY_ITEMS} />
+        </SectionCard>
+      </SectionCard>
+
+    </div>
+  );
+}
+
+
+function ConclusionsContent() {
+  return (
+    <div className="space-y-8">
+      <SectionCard title="Overall Scientific Synthesis">
+        <p>
+          This project combined <strong>unsupervised</strong> methods (PCA, clustering) with{" "}
+          <strong>supervised</strong> methods (Gaussian Naïve Bayes, Decision Trees, XGBoost) to study
+          <em> team-level college basketball performance</em> and predict March Madness outcomes.
+          The core data consisted of <strong>continuous efficiency metrics</strong> (e.g., ADJOE, ADJDE,
+          shooting percentages) augmented by a few <strong>discrete / ordinal features</strong> (e.g., Seed),
+          aggregated at the <em>team-season</em> level from 2008–2025 (excluding 2020).
+        </p>
+
+        <p className="mt-2">
+          The pipeline can be viewed as two layers:
+        </p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>
+            <strong>Representation & structure discovery:</strong> PCA reduced high-dimensional,
+            highly correlated team statistics to a 6D space that retained &gt;90% of the variance, and
+            clustering in this space revealed <strong>k ≈ 6</strong> stable team “archetypes.”
+          </li>
+          <li>
+            <strong>Outcome prediction:</strong> Supervised models (Gaussian Naïve Bayes, Decision Trees,
+            XGBoost) trained on <code>diff_*</code> features from pairwise matchups learned to map statistical
+            differences directly to binary game outcomes, achieving high predictive accuracy and, in the case
+            of Naïve Bayes, an ESPN bracket score of <strong>1730/1920</strong> for the 2025 tournament.
+          </li>
+        </ul>
+
+        <p className="mt-2">
+          Scientifically, the study shows that <strong>classical ML</strong> models—when paired with
+          domain-aware feature engineering and careful evaluation—can extract meaningful structure from
+          continuous team-level data and produce competitively accurate predictions, even relative to more
+          complex methods that might be overkill given the data regime.
+        </p>
+      </SectionCard>
+
+      <SectionCard title="What Worked Well">
+        <h4 className="font-semibold mt-1">1. PCA & Clustering as a Structural Lens</h4>
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            <strong>PCA:</strong> The first 6 principal components captured &gt;90% of variance, with PC1
+            aligning with a <em>team strength axis</em> (efficiency + seed) and PC2 with a{" "}
+            <em>style axis</em> (perimeter shooting vs rebounding/defense). This validated the intuition that
+            the raw features are highly redundant and that a lower-dimensional, orthogonal representation is
+            scientifically sensible.
+          </li>
+          <li>
+            <strong>Clustering:</strong> Both K-Means (Euclidean in PCA space) and hierarchical clustering
+            (cosine + average linkage) repeatedly suggested a compact solution around <strong>k ≈ 6</strong>.
+            The agreement across methods indicates that the discovered clusters represent <em>stable
+            archetypes</em> rather than artifacts of a single algorithm.
+          </li>
+          <li>
+            The clusters were <strong>interpretable</strong> (offense-first, defense-first, balanced profiles,
+            etc.) and map naturally onto how analysts describe teams. This is a strong qualitative validation
+            of the unsupervised layer, even though clustering itself does not “predict” outcomes.
+          </li>
+        </ul>
+
+        <h4 className="font-semibold mt-4">2. Simple Probabilistic Modeling with Naïve Bayes</h4>
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            Using <strong>Gaussian Naïve Bayes</strong> on pairwise <code>diff_*</code> features produced a
+            model that is <em>order-invariant</em> (through symmetrization) and extremely fast to train and
+            evaluate.
+          </li>
+          <li>
+            Despite strong violations of the conditional independence assumption, the model performed
+            competitively and achieved a high ESPN bracket score (1730/1920 for 2025). This is consistent
+            with the broader scientific observation that NB often performs surprisingly well in correlated,
+            high-dimensional settings due to its strong implicit regularization.
+          </li>
+          <li>
+            The probabilistic outputs are easy to interpret and to combine with other information
+            (e.g., cluster priors or betting lines), making NB a useful building block in larger systems.
+          </li>
+        </ul>
+
+        <h4 className="font-semibold mt-4">3. Tree-Based Models: Interpretability and Flexibility</h4>
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            <strong>Decision Trees</strong> provided explicit, human-readable rules linking
+            <code>diff_*</code> features to win probabilities. Gini importances highlighted which metrics
+            (e.g., offensive and defensive efficiency, shooting percentages, seed) had the strongest
+            discriminative power.
+          </li>
+          <li>
+            <strong>XGBoost</strong> leveraged ensembles of shallow trees to capture nonlinear interactions
+            between features and achieved strong held-out accuracy on the head-to-head dataset. Hyperparameter
+            sweeps showed the expected bias–variance trade-offs: smaller learning rates and more trees generated
+            smoother, more robust predictors.
+          </li>
+          <li>
+            Both methods confirmed that a relatively small subset of features carries most of the predictive
+            signal, aligning with basketball intuition (balanced efficiency, shooting, and turnover control).
+          </li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Scientific Challenges and Limitations">
+        <h4 className="font-semibold mt-1">1. Data Regime and Selection Bias</h4>
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            The dataset focuses on <strong>tournament teams only</strong> across 2008–2025 (minus 2020). This
+            induces a <em>selection bias</em>: all examples are already high-quality teams, and the learned
+            relationships may not generalize to the full population of Division I teams or to non-tournament
+            games.
+          </li>
+          <li>
+            The number of games per tournament and per season is relatively small compared to the dimensionality
+            of the feature space. As a result, complex models (deep trees, large ensembles, deep nets) are
+            statistically risky; they can fit noise in historical tournaments that does not represent stable signal.
+          </li>
+          <li>
+            The underlying data-generating process is <strong>non-stationary</strong>: rule changes, stylistic
+            shifts (e.g., three-point rate trends), and changes in parity over time can all create{" "}
+            <em>covariate shift</em> between earlier seasons and recent tournaments. A model trained on 2008–2016
+            data might over- or under-weight certain features for 2025.
+          </li>
+        </ul>
+
+        <h4 className="font-semibold mt-4">2. Mixed Data Types & Model Assumptions</h4>
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            The feature set is a mix of <strong>continuous metrics</strong> (efficiency, shooting percentages,
+            tempo) and <strong>discrete / ordinal values</strong> (seed). Treating everything as continuous
+            simplifies modeling but imposes parametric assumptions—e.g., Gaussian NB assumes normally distributed
+            <code>diff_*</code> features—which are only approximate.
+          </li>
+          <li>
+            Core assumptions are knowingly violated:
+            <ul className="list-disc pl-6 mt-1 space-y-1">
+              <li>
+                <strong>Naïve Bayes:</strong> Assumes conditional independence of features given the outcome and
+                Gaussian marginals. In reality, metrics like ADJOE, EFG_O, 3P%, and tempo are strongly correlated
+                and far from strictly normal.
+              </li>
+              <li>
+                <strong>K-Means:</strong> Assumes roughly spherical, equal-variance clusters in Euclidean space.
+                Real basketball archetypes may be elongated, overlapping, and have unequal densities.
+              </li>
+              <li>
+                <strong>PCA:</strong> Optimizes for explained variance, not predictive power. High-variance
+                directions need not be the most outcome-relevant, and low-variance directions might still be
+                important for predicting upsets.
+              </li>
+            </ul>
+          </li>
+          <li>
+            Despite these mismatches, the models still perform well—highlighting a central theme in applied ML:
+            <em> simple, mis-specified models can be highly useful when the feature engineering is aligned with
+            the domain.</em>
+          </li>
+        </ul>
+
+        <h4 className="font-semibold mt-4">3. Evaluation Noise and Generalization</h4>
+        <ul className="list-disc pl-6 space-y-1 mt-1">
+          <li>
+            Cross-validation on historical head-to-head data provides an estimate of average generalization, but
+            <strong>bracket evaluation is extremely noisy</strong>. A single NCAA tournament is a small, high-variance
+            sample; many upsets are essentially coin flips from the model’s perspective.
+          </li>
+          <li>
+            Scoring 1730/1920 on one ESPN bracket is impressive but not a statistically robust signal. A different
+            year, or slightly different model, could produce substantially different scores due to random tournament
+            variability rather than true model quality differences.
+          </li>
+          <li>
+            Current evaluation largely treats games as i.i.d. and ignores bracket structure (path dependence,
+            correlation between games, and the compounding nature of early upsets), which complicates the mapping
+            from “good game-level probabilities” to “good bracket-level performance.”
+          </li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Choosing the Right Method: Supervised vs Unsupervised vs Deep Learning">
+        <p>
+          A key scientific lesson from this project is that <strong>no single ML paradigm is universally best</strong>.
+          Performance and interpretability depend strongly on the problem formulation, the data type, and the signal-to-noise
+          ratio.
+        </p>
+
+        <ul className="list-disc pl-6 space-y-1 mt-2">
+          <li>
+            <strong>Unsupervised learning (PCA, clustering)</strong> is well-suited for{" "}
+            <em>exploratory structure discovery</em> when labels are scarce or noisy. It excelled at revealing
+            persistent team archetypes and enabling style-based reasoning, but it does not directly minimize any
+            loss related to tournament outcomes.
+          </li>
+          <li>
+            <strong>Supervised learning (Naïve Bayes, Decision Trees, XGBoost)</strong> is appropriate for predicting
+            discrete outcomes (win/loss) from continuous team statistics. These models are mathematically aligned
+            with the problem and work well in the given data regime, especially when complexity is controlled.
+          </li>
+          <li>
+            <strong>Deep learning</strong> would be more natural for <em>richer, high-volume data</em> such as
+            play-by-play sequences, player tracking, or video—data that is not directly used here. Given the modest
+            sample size and aggregate feature representation, deep networks would likely overfit and provide little
+            interpretability benefit relative to tree ensembles or simple generative models.
+          </li>
+        </ul>
+
+        <p className="mt-2">
+          In short, this project reinforces a practical principle: with moderately sized, structured tabular data,
+          <strong>carefully engineered features + classical supervised models</strong> often dominate more complex
+          architectures. Unsupervised tools add complementary value by revealing structure and informing priors,
+          rather than by directly optimizing predictive accuracy.
+        </p>
+      </SectionCard>
+
+      <SectionCard title="Future Work and Research Directions">
+        <p>
+          Several scientifically interesting extensions can address the limitations above and deepen the analysis:
+        </p>
+
+        <ol className="list-decimal pl-6 space-y-1 mt-2">
+          <li>
+            <strong>Season-Aware and Out-of-Time Validation:</strong> Instead of random CV, perform{" "}
+            <em>season-out</em> validation: train on 2008–t and test on season t+1. This directly measures
+            robustness to temporal covariate shift and provides a clearer sense of how models age as the sport
+            evolves.
+          </li>
+          <li>
+            <strong>Probabilistic Clustering & Uncertainty Quantification:</strong> Replace hard K-Means with{" "}
+            <em>Gaussian Mixture Models</em> or other probabilistic clustering approaches to obtain soft cluster
+            memberships. These probabilities could be propagated into game-level models, yielding more honest
+            uncertainty quantification about a team’s underlying “style identity.”
+          </li>
+          <li>
+            <strong>Calibration and Decision-Theoretic Evaluation:</strong> Beyond accuracy, evaluate models with
+            <em> log loss, Brier score, and calibration curves</em>. Well-calibrated probabilities are essential if
+            the goal is risk management (e.g., bracket pools, betting) rather than purely ranking teams by strength.
+            Calibration methods (e.g., Platt scaling, isotonic regression) could be layered on top of NB or XGBoost.
+          </li>
+          <li>
+            <strong>Richer Feature Sets and Hierarchical Modeling:</strong> Incorporate temporal features (recent form,
+            rolling efficiencies), context (travel, rest, altitude), and matchup-specific features (e.g., how a
+            perimeter-heavy offense fares against elite rim protection). Hierarchical / multilevel models could capture
+            partial pooling across seasons and conferences to stabilize estimates for smaller programs.
+          </li>
+          <li>
+            <strong>Integration of Cluster Priors with Supervised Models:</strong> Use the learned archetypes as
+            higher-level covariates—e.g., cluster indices or membership probabilities—as inputs to supervised models or
+            as priors on round-advance probabilities. This would formally connect “style” and “outcome” rather than
+            keeping them as parallel analyses.
+          </li>
+          <li>
+            <strong>Alternative Targets and Multi-Task Learning:</strong> Extend beyond binary win/loss to model{" "}
+            <em>score margin</em> or <em>survival time in the tournament</em> (e.g., via survival models or ordinal
+            regression). Jointly modeling multiple related targets could reveal different aspects of team quality.
+          </li>
+          <li>
+            <strong>Careful Exploration of Deep Models (if Data Grows):</strong> Should richer, large-scale data
+            (play-by-play, tracking, or video-derived embeddings) become available, sequence models or graph-based
+            architectures could be explored. These would be appropriate for high-dimensional, non-tabular inputs and
+            could complement the current tabular approach rather than replace it.
+          </li>
+        </ol>
+
+        <p className="mt-2">
+          Overall, the project demonstrates that <strong>interpretable, classical ML methods</strong> applied to
+          carefully curated continuous team statistics can simultaneously uncover meaningful basketball archetypes and
+          deliver strong predictive performance. At the same time, it highlights the importance of model assumptions,
+          data selection, and evaluation design—and points toward a rich set of future research directions that could
+          better quantify uncertainty, account for temporal change, and integrate unsupervised structure with
+          supervised prediction in a principled way.
+        </p>
+      </SectionCard>
+    </div>
+  );
+}
+
+
+
 
 
 // Simple outside click hook for dropdown
@@ -1735,10 +2193,8 @@ export default function App() {
         return <DecisionTreesTab/>;
       case "xgboost":
         return <XGBoostTab/>;
-      case "regression":
-        return <PlaceholderMethod name="Regression" />;
-      case "nn":
-        return <PlaceholderMethod name="Neural Networks" />;
+      case "results":
+        return <ResultsTab/>;
       default:
         return null;
     }
